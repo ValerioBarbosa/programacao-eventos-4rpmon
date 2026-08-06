@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Programação Operacional 4ºRPMon</title>
+<title>Painel P3 — Programação Operacional 4ºRPMon</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,12 +14,17 @@
       <div class="brasao"><img src="image.png" alt="Brasão do 4º RPMon"></div>
       <div>
         <h1>Programação Operacional 4ºRPMon</h1>
-        <p class="subtitulo">Agenda de eventos e atividades — 2026</p>
+        <p class="subtitulo">Painel de gerenciamento — P3</p>
       </div>
     </div>
 
     <div class="area-acesso">
-      <a class="botao-acesso" href="admin.html">Acesso P3</a>
+      <button class="botao-acesso" id="botaoAcessoP3" onclick="abrirCaixaSenha()">Acesso P3</button>
+      <div class="badge-p3" id="badgeP3" style="display:none;">
+        Modo P3 ativo
+        <button onclick="sairModoP3()">Sair</button>
+      </div>
+      <a class="botao-acesso" href="index.html">Ver agenda pública</a>
 
       <div class="mes-cabecalho">
         <label for="mesSelecionado">Mês de referência</label>
@@ -43,10 +48,6 @@
 </header>
 
 <main class="container">
-  <div class="aviso-visualizacao">
-    Modo visualização. Apenas membros do P3 podem incluir, editar ou excluir eventos.
-  </div>
-
   <section class="painel">
     <div class="campo">
       <label for="pesquisa">Pesquisar evento</label>
@@ -85,9 +86,63 @@
   <h2 class="titulo-mes" id="tituloMes">Agosto de 2026</h2>
 
   <section class="grade-eventos" id="listaEventos"></section>
+
+  <section class="formulario" id="areaAdministrativa" style="display:none;">
+    <h2 id="tituloFormulario">Adicionar evento — P3</h2>
+    <div class="form-grid">
+      <div class="campo">
+        <label for="dataEvento">Data</label>
+        <input id="dataEvento" type="date" min="2026-01-01" max="2026-12-31">
+      </div>
+      <div class="campo">
+        <label for="horaEvento">Horário</label>
+        <input id="horaEvento" type="time">
+      </div>
+      <div class="campo">
+        <label for="nomeEvento">Evento</label>
+        <input id="nomeEvento" type="text" placeholder="Nome do evento">
+      </div>
+      <div class="campo">
+        <label for="localEvento">Local / observação</label>
+        <input id="localEvento" type="text" placeholder="Local ou observação">
+      </div>
+      <div class="campo">
+        <label for="tipoEvento">Tipo de evento</label>
+        <select id="tipoEvento">
+          <option value="POLOST">01. POLOST</option>
+          <option value="Operações">02. Operações</option>
+          <option value="Manifestação Social">03. Manifestação Social</option>
+          <option value="Jogos de Futebol">04. Jogos de Futebol</option>
+          <option value="Passeio a Cavalo">05. Passeio a Cavalo</option>
+          <option value="Carnaval">06. Carnaval</option>
+          <option value="Cavalgadas">07. Cavalgadas</option>
+          <option value="Rodeios">08. Rodeios</option>
+          <option value="Dragões, Representações e Outros">09. Dragões, Representações e Outros</option>
+          <option value="Clarim, Formaturas e Reuniões">10. Clarim, Formaturas e Reuniões</option>
+          <option value="Shows e Eventos">11. Shows e Eventos</option>
+          <option value="Empréstimo de VTR ou CAM BOX">12. Empréstimo de VTR ou CAM BOX</option>
+          <option value="Transporte de Equinos e Provas">13. Transporte de Equinos e Provas</option>
+          <option value="Viagens e Deslocamentos Operacionais">14. Viagens e Deslocamentos Operacionais</option>
+        </select>
+      </div>
+      <button id="botaoSalvar" onclick="salvarEvento()">Adicionar</button>
+    </div>
+    <div class="mensagem" id="mensagem"></div>
+  </section>
 </main>
 
-<footer>Programação Operacional 4ºRPMon — Agenda de eventos de 2026</footer>
+<footer>Programação Operacional 4ºRPMon — Painel do P3</footer>
+
+<div class="sobreposicao" id="sobreposicaoSenha">
+  <div class="caixa-senha">
+    <h3>Acesso restrito — P3</h3>
+    <input id="campoSenha" type="password" placeholder="Digite a senha do P3" onkeydown="if(event.key==='Enter') validarSenha()">
+    <div class="linha-botoes">
+      <button class="botao-cancelar" onclick="fecharCaixaSenha()">Cancelar</button>
+      <button onclick="validarSenha()">Entrar</button>
+    </div>
+  </div>
+</div>
 
 <script type="module" src="app.js"></script>
 </body>
