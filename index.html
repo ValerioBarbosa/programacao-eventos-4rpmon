@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Programação Operacional - Agosto de 2026 | 4º RPMON</title>
+
+  <style>
+    :root {
+      --azul-escuro: #0f172a;
+      --azul: #1d4ed8;
+      --azul-claro: #dbeafe;
+      --cinza-fundo: #f1f5f9;
+      --cinza-texto: #475569;
+      --branco: #ffffff;
+      --borda: #e2e8f0;
+      --verde: #15803d;
+      --verde-fundo: #dcfce7;
+      --vermelho: #b91c1c;
+      --vermelho-fundo: #fee2e2;
+      --laranja: #c2410c;
+      --laranja-fundo: #ffedd5;
+      --roxo: #7e22ce;
+      --roxo-fundo: #f3e8ff;
+      --sombra: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--cinza-fundo);
+      color: var(--azul-escuro);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.5;
+    }
+
+    header {
+      background:
+        linear-gradient(135deg, rgba(15, 23, 42, 0.97), rgba(21, 128, 61, 0.85));
+      color: var(--branco);
+      padding: 40px 20px 36px;
+    }
+
+    .container {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+    }
+
+    .cabecalho-conteudo {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .identidade {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .brasao {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 8px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+      height: 90px;
+      width: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .brasao img {
+      height: 100%;
+      width: 100%;
+      object-fit: contain;
+    }
+
+    .titulo-area h1 {
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+      margin-bottom: 6px;
+    }
+
+    .titulo-area p {
+      color: #dbeafe;
+      font-size: 1.02rem;
+    }
+
+    .marca {
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 14px;
+      padding: 16px 20px;
+      text-align: center;
+      min-width: 150px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(6px);
+    }
+
+    .marca strong {
+      display: block;
+      font-size: 1.5rem;
+    }
+
+    .marca span {
+      font-size: 0.82rem;
+      color: #bfdbfe;
+    }
+
+    main {
+      padding: 28px 20px 52px;
+    }
+
+    .painel-controles {
+      background: var(--branco);
+      border: 1px solid var(--borda);
+      border-radius: 18px;
+      box-shadow: var(--sombra);
+      padding: 20px;
+      margin-bottom: 28px;
+    }
+
+    .controles {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr auto;
+      gap: 14px;
+      align-items: end;
+    }
+
+    .campo {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .campo label {
+      color: var(--cinza-texto);
+      font-size: 0.85rem;
+      font-weight: bold;
+    }
+
+    input,
+    select,
+    button {
+      border: 1px solid var(--borda);
+      border-radius: 10px;
+      font: inherit;
+      min-height: 44px;
+      padding: 10px 13px;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--azul);
+      outline: 3px solid var(--azul-claro);
+    }
+
+    button {
+      background: var(--azul);
+      color: var(--branco);
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.2s ease;
+    }
+
+    button:hover {
+      background: #1e40af;
+      transform: translateY(-1px);
+    }
+
+    .resumo {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .indicador {
+      background: #f8fafc;
+      border: 1px solid var(--borda);
+      border-radius: 10px;
+      color: var(--cinza-texto);
+      padding: 9px 13px;
+      font-size: 0.9rem;
+    }
+
+    .indicador strong {
+      color: var(--azul-escuro);
+    }
+
+    .agenda {
+      display: grid;
+      gap: 18px;
+    }
+
+    .dia {
+      background: var(--branco);
+      border: 1px solid var(--borda);
+      border-radius: 18px;
+      box-shadow: var(--sombra);
+      overflow: hidden;
+    }
+
+    .dia-cabecalho {
+      align-items: center;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--borda);
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 18px 22px;
+    }
+
+    .data {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+    }
+
+    .numero-dia {
+      align-items: center;
+      background: var(--azul);
+      border-radius: 12px;
+      color: var(--branco);
+      display: flex;
+      font-size: 1.35rem;
+      font-weight: bold;
+      height: 52px;
+      justify-content: center;
+      width: 52px;
+    }
+
+    .data h2 {
+      font-size: 1.1rem;
+      text-transform: capitalize;
+    }
+
+    .data p {
+      color: var(--cinza-texto);
+      font-size: 0.88rem;
+    }
+
+    .esquadrao {
+      background: var(--azul-claro);
+      border-radius: 999px;
+      color: #1e3a8a;
+      font-size: 0.78rem;
+      font-weight: bold;
+      padding: 7px 12px;
+      white-space: nowrap;
+    }
+
+    .atividades {
+      display: grid;
+      gap: 12px;
+      padding: 18px 22px 22px;
+    }
+
+    .atividade {
+      border: 1px solid var(--borda);
+      border-left: 5px solid var(--azul);
+      border-radius: 11px;
+      padding: 14px 15px;
+      background: #ffffff;
+    }
+
+    .atividade-topo {
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .tipo {
+      border-radius: 999px;
+      font-size: 0.73rem;
+      font-weight: bold;
+      padding: 4px 9px;
+    }
+
+    .tipo-futebol {
+      background: var(--verde-fundo);
+      color: var(--verde);
+    }
+
+    .tipo-visita {
+      background: var(--roxo-fundo);
+      color: var(--roxo);
+    }
+
+    .tipo-polost,
+    .tipo-operacao {
+      background: var(--vermelho-fundo);
+      color: var(--vermelho);
+    }
+
+    .tipo-passeio {
+      background: var(--laranja-fundo);
+      color: var(--laranja);
+    }
+
+    .atividade h3 {
+      font-size: 1rem;
+    }
+
+    .atividade p {
+      color: var(--cinza-texto);
+      font-size: 0.92rem;
+    }
+
+    .atividade strong {
+      color: var(--azul-escuro);
+    }
+
+    .sem-atividade {
+      color: var(--cinza-texto);
+      font-style: italic;
+      padding: 4px 0;
+    }
+
+    .sem-resultados {
+      background: var(--branco);
+      border: 1px solid var(--borda);
+      border-radius: 16px;
+      color: var(--cinza-texto);
+      padding: 35px 20px;
+      text-align: center;
+    }
+
+    footer {
+      border-top: 1px solid var(--borda);
+      color: var(--cinza-texto);
+      font-size: 0.82rem;
+      padding: 22px 20px 35px;
+      text-align: center;
+    }
+
+    @media (max-width: 850px) {
+      .controles {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .controles .campo:first-child {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 600px) {
+      header {
+        padding: 30px 16px;
+      }
+
+      main {
+        padding: 20px 12px 40px;
+      }
+
+      .cabecalho-conteudo,
+      .dia-cabecalho {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .marca {
+        width: 100%;
+      }
+
+      .brasao {
+        height: 70px;
+        width: 60px;
+      }
+
+      .controles {
+        grid-template-columns: 1fr;
+      }
+
+      .controles .campo:first-child {
+        grid-column: auto;
+      }
+
+      .atividades {
+        padding: 15px;
+      }
+
+      .dia-cabecalho {
+        padding: 16px;
+      }
+    }
+
+    @media print {
+      body {
+        background: #ffffff;
+      }
+
+      header {
+        background: var(--azul-escuro);
+        padding: 25px;
+      }
+
+      .painel-controles,
+      footer {
+        display: none;
+      }
+
+      main {
+        padding: 20px 0;
+      }
+
+      .dia {
+        box-shadow: none;
+        break-inside: avoid;
+        margin-bottom: 14px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="container cabecalho-conteudo">
+      <div class="identidade">
+        <div class="brasao">
+          <img src="brasao.png" alt="Brasão do 4º RPMON" />
+        </div>
+
+        <div class="titulo-area">
+          <h1>4º RPMON</h1>
+          <p>Programação Operacional — Agosto de 2026</p>
+        </div>
+      </div>
+
+      <div class="marca">
+        <strong>AGOSTO</strong>
+        <span>Programação mensal</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="painel-controles">
+      <div class="controles">
+        <div class="campo">
+          <label for="busca">Pesquisar atividade, local ou equipe</label>
+          <input
+            id="busca"
+            type="search"
+            placeholder="Ex.: futebol, Iguatemi, Passo Fundo..."
+          />
+        </div>
+
+        <div class="campo">
+          <label for="filtroTipo">Tipo de atividade</label>
+          <select id="filtroTipo">
+            <option value="todos">Todas</option>
+            <option value="futebol">Futebol</option>
+            <option value="visita">Visitação</option>
+            <option value="polost">POLOST</option>
+            <option value="operacao">Operação</option>
+            <option value="passeio">Passeio a cavalo</option>
+          </select>
+        </div>
+
+        <div class="campo">
+          <label for="filtroEsquadrao">Esquadrão</label>
+          <select id="filtroEsquadrao">
+            <option value="todos">Todos</option>
+            <option value="1º Esqd">1º Esqd</option>
+            <option value="2º Esqd">2º Esqd</option>
+          </select>
+        </div>
+
+        <button type="button" onclick="window.print()">
+          Imprimir
+        </button>
+      </div>
+
+      <div class="resumo">
+        <div class="indicador">
+          Dias exibidos: <strong id="totalDias">0</strong>
+        </div>
+
+        <div class="indicador">
+          Atividades encontradas: <strong id="totalAtividades">0</strong>
+        </div>
+      </div>
+    </section>
+
+    <section id="agenda" class="agenda"></section>
+  </main>
+
+  <footer>
+    4º RPMON — Programação Operacional — Agosto de 2026
+  </footer>
+
+  <script>
+    const programacao = [
+      {
+        dia: 6,
+        semana: "Quinta-feira",
+        esquadrao: "2º Esqd",
+        atividades: [
+          {
+            tipo: "polost",
+            titulo: "POLOST — Praças Passo Fundo",
+            detalhes: "03 conjuntos | 13h às 19h"
+          },
+          {
+            tipo: "visita",
+            titulo: "Visitação — APAE Vila Nova",
+            detalhes: "14h | NSv 086"
+          },
+          {
+            tipo: "futebol",
+            titulo: "Futebol — Gaúcho x Gramadense",
+            detalhes: "03 conjuntos | ECD 18h | Início da partida às 19h | Passo Fundo | OSv 351"
+          },
+          {
+            tipo: "operacao",
+            titulo: "Operação Convergência",
+            detalhes: "03 conjuntos | 13h às 19h | 9º BPM — Rua Silva Só x Avenida Ipiranga | OSv 352"
+          }
+        ]
+      },
+      {
+        dia: 7,
+        semana: "Sexta-feira",
+        esquadrao: "1º Esqd",
+        atividades: [
+          {
+            tipo: "polost",
+            titulo: "POLOST — Praças Passo Fundo",
+            detalhes: "03 conjuntos | 13h às 19h"
+          },
+          {
+            tipo: "passeio",
+            titulo: "Passeio a cavalo — ACISO / Cozinha Comunitária Infantil",
+            detalhes: "04 MEs | 02 equinos | 10h às 12h | Santa Maria | OSv 353"
+          },
+          {
+            tipo: "operacao",
+            titulo: "Operação Convergência",
+            detalhes: "03 conjuntos | 13h às 19h | 11º BPM — Avenida Nilo Peçanha, Iguatemi | OSv 352"
+          }
+        ]
+      },
+      {
+        dia: 8,
+        semana: "Sábado",
+        esquadrao: "1º Esqd",
+        atividades: [
+          {
+            tipo: "polost",
+            titulo: "POLOST — Praças Passo Fundo",
+            detalhes: "03 conjuntos | 13h às 19h"
+          },
+          {
+            tipo: "futebol",
+            titulo: "Futebol — Grêmio x São Paulo",
+            detalhes: "12 conjuntos | Início da partida às 16h"
+          }
+        ]
+      },
+      {
+        dia: 9,
+        semana: "Domingo",
+        esquadrao: "1º Esqd",
+        atividades: [
+          {
+            tipo: "operacao",
+            titulo: "Operação Convergência",
+            detalhes: "03 conjuntos | 13h às 19h | 11º BPM — Avenida Nilo Peçanha, Iguatemi | OSv 352"
+          },
+          {
+            tipo: "futebol",
+            titulo: "Futebol — Passo Fundo x Brasil de Pelotas",
+            detalhes: "03 conjuntos | ECD às 14h | Início da partida às 15h"
+          }
+        ]
+      },
+      {
+        dia: 10,
+        semana: "Segunda-feira",
+        esquadrao: "2º Esqd",
+        atividades: [
+          {
+            tipo: "polost",
+            titulo: "POLOST — Praças Passo Fundo",
+            detalhes: "03 conjuntos | 13h às 19h"
+          },
+          {
+            tipo: "polost",
+            titulo: "POLOST — Avenida Nilo Peçanha / Shopping Iguatemi",
+            detalhes: "03 conjuntos | 13h às 19h | OSv 001"
+          },
+          {
+            tipo: "polost",
+            titulo: "POLOST — Avenida Ipiranga / Rua Silva Só",
+            detalhes: "03 conjuntos | 13h às 19h | OSv 001"
+          }
+        ]
+      },
+      {
+        dia: 11,
+        semana: "Terça-feira",
+        esquadrao: "2º Esqd",
+        atividades: [
+          {
+            tipo: "polost",
+            titulo: "POLOST — Praças Passo Fundo",
+            detalhes: "03 conjuntos | 13h às 19h"
+          },
+          {
+            tipo: "polost",
+            titulo: "POLOST — Avenida Nilo Peçanha / Shopping Iguatemi",
+            detalhes: "03 conjuntos | 13h às 19h | OSv 001"
+          },
+          {
+            tipo: "polost",
+            titulo: "POLOST — Avenida Ipiranga / Rua Silva Só",
+            detalhes: "03 conjuntos | 13h às 19h | OSv 001"
+          }
+        ]
+      },
+      {
+        dia: 12,
+        semana: "Quarta-feira",
+        esquadrao: "1º Esqd",
+        atividades: [
+          {
+            tipo: "polost",
+            titulo: "POLOST — Praças Passo Fundo",
+            detalhes: "03 conjuntos | 13h às 19h"
+          },
+          {
+            tipo: "polost",
+            titulo: "POLOST — Avenida Nilo Peçanha / Shopping Iguatemi",
+            detalhes: "03 conjuntos | 13h às 19h | OSv 001"
+          },
+          {
+            tipo: "polost",
+            titulo: "POLOST — Avenida Ipiranga / Rua Silva Só",
+            detalhes: "03 conjuntos | 13h às 19h | OSv 001"
+          }
+        ]
+      },
+      {
+        dia: 13,
+        semana: "Quinta-feira",
+        esquadrao: "1º Esqd",
+        atividades: [
+          {
+            tipo: "visita",
+            titulo: "Visitação — Residencial TEA",
+            detalhes: "14h"
+          },
+          {
+            tipo: "futebol",
+            titulo: "Futebol — Gaúcho x Pelotas",
+            detalhes: "03 conjuntos | ECD 18h | Início da partida às 19h | Passo Fundo"
+          },
+          {
+            tipo: "polost",
+            titulo: "POLOST — Avenida Nilo Peçanha / Shopping Iguatemi",
+            detalhes: "03 conjuntos | 13h às 19h | OSv 001"
+          },
+          {
+            tipo: "polost",
+            titulo: "POLOST — Avenida Ipiranga / Rua Silva Só",
+            detalhes: "03 conjuntos | 13h às 19h | OSv 001"
+          }
+        ]
+      },
+      {
+        dia: 14,
+        semana: "Sexta-feira",
+        esquadrao: "2º Esqd",
+        atividades: [
+          {
+            tipo: "polost",
+            titulo: "POLOST — Praças Passo Fundo",
+            detalhes: "03 conjuntos | 13h às 19h"
+          },
+          {
+            tipo: "polost",
+            titulo: "POLOST — Avenida Nilo Peçanha / Shopping Iguatemi",
+            detalhes: "03 conjuntos | 13h às 19h | OSv 001"
+          },
+          {
+            tipo: "polost",
+            titulo: "POLOST — Avenida Ipiranga / Rua Silva Só",
+            detalhes: "03 conjuntos | 13h às 19h | OSv 001"
+          }
+        ]
+      },
+      {
+        dia: 15,
+        semana: "Sábado",
+        esquadrao: "2º Esqd",
+        atividades: [
+          {
+            tipo: "polost",
+            titulo: "POLOST — 77º Acendimento da Chama Crioula",
+            detalhes: "06 conjuntos | 8h às 14h | Rio Pardo/RS"
+          },
+          {
+            tipo: "futebol",
+            titulo: "Futebol — Juventude x Fortaleza",
+            detalhes: "05 conjuntos | Início da partida às 18h30"
+          }
+        ]
+      },
+      {
+        dia: 16,
+        semana: "Domingo",
+        esquadrao: "2º Esqd",
+        atividades: [
+          {
+            tipo: "futebol",
+            titulo: "Futebol — Caxias x Figueirense",
+            detalhes: "05 conjuntos | Início da partida às 16h"
+          }
+        ]
+      },
+      {
+        dia: 17,
+        semana: "Segunda-feira",
+        esquadrao: "1º Esqd",
+        atividades: [
+          {
+            tipo: "futebol",
+            titulo: "Futebol — Internacional x Remo",
+            detalhes: "12 conjuntos | Início da partida às 20h"
+          }
+        ]
+      },
+      {
+        dia: 18,
+        semana: "Terça-feira",
+        esquadrao: "1º Esqd",
+        atividades: []
+      },
+      {
+        dia: 19,
+        semana: "Quarta-feira",
+        esquadrao: "2º Esqd",
+        atividades: [
+          {
+            tipo: "visita",
+            titulo: "Visitação — Escola HUB",
+            detalhes: "9h às 11h | 22 estudantes, 02 professoras, 01 AT e 02 estagiários | Estudantes entre 11 e 15 anos | Buscar e levar: Rua De La Grange, 214 — Bairro Três Figueiras"
+          }
+        ]
+      },
+      {
+        dia: 20,
+        semana: "Quinta-feira",
+        esquadrao: "2º Esqd",
+        atividades: []
+      },
+      {
+        dia: 21,
+        semana: "Sexta-feira",
+        esquadrao: "1º Esqd",
+        atividades: []
+      },
+      {
+        dia: 22,
+        semana: "Sábado",
+        esquadrao: "1º Esqd",
+        atividades: [
+          {
+            tipo: "futebol",
+            titulo: "Futebol — Internacional x Atlético-MG",
+            detalhes: "12 conjuntos | Início da partida às 18h30"
+          }
+        ]
+      },
+      {
+        dia: 23,
+        semana: "Domingo",
+        esquadrao: "1º Esqd",
+        atividades: [
+          {
+            tipo: "passeio",
+            titulo: "Passeio a cavalo — 1ª Corrida do 24º BPM",
+            detalhes: "02 MEs | 01 equino | 8h | Alvorada/RS"
+          }
+        ]
+      },
+      {
+        dia: 24,
+        semana: "Segunda-feira",
+        esquadrao: "2º Esqd",
+        atividades: []
+      },
+      {
+        dia: 25,
+        semana: "Terça-feira",
+        esquadrao: "2º Esqd",
+        atividades: [
+          {
+            tipo: "visita",
+            titulo: "Visitação — FADERS",
+            detalhes: "14h"
+          },
+          {
+            tipo: "futebol",
+            titulo: "Futebol — Juventude x CRB",
+            detalhes: "05 conjuntos | Início da partida às 19h30"
+          }
+        ]
+      },
+      {
+        dia: 26,
+        semana: "Quarta-feira",
+        esquadrao: "1º Esqd",
+        atividades: []
+      },
+      {
+        dia: 27,
+        semana: "Quinta-feira",
+        esquadrao: "1º Esqd",
+        atividades: []
+      },
+      {
+        dia: 28,
+        semana: "Sexta-feira",
+        esquadrao: "2º Esqd",
+        atividades: []
+      },
+      {
+        dia: 29,
+        semana: "Sábado",
+        esquadrao: "2º Esqd",
+        atividades: [
+          {
+            tipo: "futebol",
+            titulo: "Futebol — Caxias x Inter de Limeira",
+            detalhes: "05 conjuntos | Início da partida às 17h"
+          }
+        ]
+      },
+      {
+        dia: 30,
+        semana: "Domingo",
+        esquadrao: "1º Esqd",
+        atividades: []
+      },
+      {
+        dia: 31,
+        semana: "Segunda-feira",
+        esquadrao: "1º Esqd",
+        atividades: []
+      }
+    ];
+
+    const nomesTipos = {
+      futebol: "Futebol",
+      visita: "Visitação",
+      polost: "POLOST",
+      operacao: "Operação",
+      passeio: "Passeio a cavalo"
+    };
+
+    const agenda = document.getElementById("agenda");
+    const busca = document.getElementById("busca");
+    const filtroTipo = document.getElementById("filtroTipo");
+    const filtroEsquadrao = document.getElementById("filtroEsquadrao");
+    const totalDias = document.getElementById("totalDias");
+    const totalAtividades = document.getElementById("totalAtividades");
+
+    function atividadeCorresponde(atividade, termo, tipo) {
+      const texto = `${atividade.titulo} ${atividade.detalhes}`.toLowerCase();
+
+      const correspondeBusca =
+        !termo || texto.includes(termo.toLowerCase());
+
+      const correspondeTipo =
+        tipo === "todos" || atividade.tipo === tipo;
+
+      return correspondeBusca && correspondeTipo;
+    }
+
+    function renderizarAgenda() {
+      const termo = busca.value.trim();
+      const tipoSelecionado = filtroTipo.value;
+      const esquadraoSelecionado = filtroEsquadrao.value;
+
+      let diasExibidos = 0;
+      let atividadesExibidas = 0;
+
+      agenda.innerHTML = "";
+
+      programacao.forEach((dia) => {
+        const correspondeEsquadrao =
+          esquadraoSelecionado === "todos" ||
+          dia.esquadrao === esquadraoSelecionado;
+
+        if (!correspondeEsquadrao) {
+          return;
+        }
+
+        const atividadesFiltradas = dia.atividades.filter((atividade) =>
+          atividadeCorresponde(atividade, termo, tipoSelecionado)
+        );
+
+        const diaSemAtividade =
+          dia.atividades.length === 0 &&
+          !termo &&
+          tipoSelecionado === "todos";
+
+        if (atividadesFiltradas.length === 0 && !diaSemAtividade) {
+          return;
+        }
+
+        diasExibidos++;
+        atividadesExibidas += atividadesFiltradas.length;
+
+        const card = document.createElement("article");
+        card.className = "dia";
+
+        const atividadesHTML = diaSemAtividade
+          ? `<p class="sem-atividade">Nenhuma atividade programada.</p>`
+          : atividadesFiltradas.map((atividade) => `
+              <div class="atividade">
+                <div class="atividade-topo">
+                  <span class="tipo tipo-${atividade.tipo}">
+                    ${nomesTipos[atividade.tipo]}
+                  </span>
+                  <h3>${atividade.titulo}</h3>
+                </div>
+                <p>${atividade.detalhes}</p>
+              </div>
+            `).join("");
+
+        card.innerHTML = `
+          <div class="dia-cabecalho">
+            <div class="data">
+              <div class="numero-dia">${dia.dia}</div>
+              <div>
+                <h2>${dia.semana}</h2>
+                <p>Agosto de 2026</p>
+              </div>
+            </div>
+
+            <span class="esquadrao">${dia.esquadrao}</span>
+          </div>
+
+          <div class="atividades">
+            ${atividadesHTML}
+          </div>
+        `;
+
+        agenda.appendChild(card);
+      });
+
+      totalDias.textContent = diasExibidos;
+      totalAtividades.textContent = atividadesExibidas;
+
+      if (diasExibidos === 0) {
+        agenda.innerHTML = `
+          <div class="sem-resultados">
+            Nenhuma atividade encontrada para os filtros selecionados.
+          </div>
+        `;
+      }
+    }
+
+    busca.addEventListener("input", renderizarAgenda);
+    filtroTipo.addEventListener("change", renderizarAgenda);
+    filtroEsquadrao.addEventListener("change", renderizarAgenda);
+
+    renderizarAgenda();
+  </script>
+</body>
+</html>
