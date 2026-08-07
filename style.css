@@ -333,4 +333,454 @@ textarea:focus {
 }
 
 .indicador strong {
-  color: var(--a
+  color: var(--azul);
+}
+
+.titulo-mes {
+  margin-bottom: 14px;
+  color: var(--azul);
+  font-size: 1.4rem;
+}
+
+/* =========================
+   CARDS DE EVENTOS
+========================= */
+
+.grade-eventos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 14px;
+}
+
+.evento-card {
+  position: relative;
+  padding: 14px;
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  border-left: 5px solid var(--vermelho);
+  border-radius: 10px;
+  box-shadow: var(--sombra);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.evento-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+}
+
+.evento-data,
+.evento-tipo,
+.evento-esquadrao {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+.evento-data {
+  color: var(--branco);
+  background: var(--azul);
+}
+
+.evento-tipo {
+  margin-left: 6px;
+  color: var(--azul);
+  background: #e8eef2;
+}
+
+.evento-esquadrao {
+  margin-left: 6px;
+}
+
+.evento-nome {
+  margin-bottom: 5px;
+  font-size: 1rem;
+  font-weight: bold;
+  overflow-wrap: anywhere;
+}
+
+.evento-local {
+  color: var(--cinza);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.acoes-card {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.acoes-card button {
+  min-height: 32px;
+  padding: 5px 10px;
+  font-size: 0.75rem;
+}
+
+.botao-editar {
+  background: #2563eb;
+}
+
+.botao-editar:hover {
+  background: #1d4ed8;
+}
+
+.sem-eventos {
+  grid-column: 1 / -1;
+  padding: 25px;
+  color: var(--cinza);
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  text-align: center;
+}
+
+/* =========================
+   CORES POR TIPO DE EVENTO
+========================= */
+
+.tipo-01 { border-left-color: #c82032; }
+.tipo-02 { border-left-color: #172033; }
+.tipo-03 { border-left-color: #f97316; }
+.tipo-04 { border-left-color: #087443; }
+.tipo-05 { border-left-color: #a855f7; }
+.tipo-06 { border-left-color: #eab308; }
+.tipo-07 { border-left-color: #7c3aed; }
+.tipo-08 { border-left-color: #0ea5e9; }
+.tipo-09 { border-left-color: #14b8a6; }
+.tipo-10 { border-left-color: #2563eb; }
+.tipo-11 { border-left-color: #db2777; }
+.tipo-12 { border-left-color: #64748b; }
+.tipo-13 { border-left-color: #b45309; }
+.tipo-14 { border-left-color: #0f766e; }
+.tipo-outros { border-left-color: #94a3b8; }
+
+.tipo-01 .evento-tipo { color: #c82032; background: #fde8ea; }
+.tipo-02 .evento-tipo { color: #172033; background: #e6e9ee; }
+.tipo-03 .evento-tipo { color: #f97316; background: #fff1e6; }
+.tipo-04 .evento-tipo { color: #087443; background: #e6f5ee; }
+.tipo-05 .evento-tipo { color: #a855f7; background: #f3e8fe; }
+.tipo-06 .evento-tipo { color: #a16207; background: #fef7d9; }
+.tipo-07 .evento-tipo { color: #7c3aed; background: #f0e8fe; }
+.tipo-08 .evento-tipo { color: #0369a1; background: #e0f4fe; }
+.tipo-09 .evento-tipo { color: #0f766e; background: #dcfaf6; }
+.tipo-10 .evento-tipo { color: #2563eb; background: #e6efff; }
+.tipo-11 .evento-tipo { color: #db2777; background: #fde6f0; }
+.tipo-12 .evento-tipo { color: #475569; background: #eef1f4; }
+.tipo-13 .evento-tipo { color: #b45309; background: #fdedd9; }
+.tipo-14 .evento-tipo { color: #0f766e; background: #dcfaf6; }
+.tipo-outros .evento-tipo { color: #64748b; background: #eef1f4; }
+
+/* =========================
+   CORES POR ESQUADRÃO
+========================= */
+
+.evento-card.esquadrao-1 {
+  border-top: 4px solid #2563eb;
+}
+
+.evento-card.esquadrao-2 {
+  border-top: 4px solid #f97316;
+}
+
+.esquadrao-1 .evento-esquadrao {
+  color: #1d4ed8;
+  background: #e6efff;
+  border: 1px solid #93c5fd;
+}
+
+.esquadrao-2 .evento-esquadrao {
+  color: #c2410c;
+  background: #fff1e6;
+  border: 1px solid #fdba74;
+}
+
+/* =========================
+   FORMULÁRIO
+========================= */
+
+.formulario {
+  margin-top: 28px;
+  padding: 18px;
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: 14px;
+  box-shadow: var(--sombra);
+}
+
+.formulario h2 {
+  margin-bottom: 14px;
+  font-size: 1.1rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  align-items: end;
+  gap: 12px;
+}
+
+.form-grid button {
+  min-height: 42px;
+}
+
+.mensagem {
+  min-height: 22px;
+  margin-top: 12px;
+  color: var(--verde-escuro);
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+/* =========================
+   AVISOS E RODAPÉ
+========================= */
+
+.aviso-visualizacao {
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  color: #1c3d8f;
+  background: #e8f0fe;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+footer {
+  padding: 20px 18px;
+  color: var(--cinza);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+/* =========================
+   MODAL DE SENHA
+========================= */
+
+.sobreposicao {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.sobreposicao.aberta {
+  display: flex;
+}
+
+.caixa-senha {
+  width: min(360px, 100%);
+  padding: 22px;
+  background: var(--branco);
+  border-radius: 14px;
+  box-shadow: var(--sombra);
+}
+
+.caixa-senha h3 {
+  margin-bottom: 14px;
+  color: var(--azul);
+}
+
+.caixa-senha input {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.linha-botoes {
+  display: flex;
+  gap: 10px;
+}
+
+.linha-botoes button {
+  flex: 1;
+}
+
+.botao-cancelar {
+  background: var(--cinza);
+}
+
+.botao-cancelar:hover {
+  background: #4b5768;
+}
+
+/* =========================
+   RESPONSIVIDADE
+========================= */
+
+@media (max-width: 1100px) {
+  .painel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .painel button,
+  .painel a {
+    width: 100%;
+  }
+
+  .form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  header {
+    padding: 18px 12px;
+  }
+
+  .cabecalho,
+  .identidade,
+  .area-acesso {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .identidade {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .brasao {
+    width: 62px;
+    height: 70px;
+  }
+
+  .area-acesso,
+  .mes-cabecalho,
+  .botao-acesso {
+    width: 100%;
+  }
+
+  main {
+    padding: 20px 10px 35px;
+  }
+
+  .painel,
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .grade-eventos {
+    grid-template-columns: 1fr;
+  }
+
+  .acoes-card {
+    flex-direction: column;
+  }
+
+  .acoes-card button {
+    width: 100%;
+  }
+
+  .linha-botoes {
+    flex-direction: column;
+  }
+}
+
+/* =========================
+   IMPRESSÃO
+========================= */
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  header .area-acesso,
+  .aviso-visualizacao,
+  .painel,
+  .formulario,
+  .resumo,
+  footer,
+  .acoes-card,
+  .sobreposicao,
+  button,
+  a {
+    display: none !important;
+  }
+
+  header {
+    padding: 0 0 12px;
+    color: #000 !important;
+    background: #fff !important;
+    border-bottom: 2px solid #000;
+  }
+
+  .container,
+  main {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .identidade {
+    justify-content: center;
+  }
+
+  .brasao {
+    width: 50px;
+    height: 58px;
+    box-shadow: none;
+    border: 1px solid #999;
+  }
+
+  h1,
+  .subtitulo,
+  .titulo-mes {
+    color: #000 !important;
+  }
+
+  .titulo-mes {
+    margin: 14px 0;
+    text-align: center;
+  }
+
+  .grade-eventos {
+    display: block !important;
+  }
+
+  .evento-card,
+  .evento-card[class*="tipo-"],
+  .evento-card[class*="esquadrao-"] {
+    display: block !important;
+    width: 100% !important;
+    margin-bottom: 10px !important;
+    padding: 10px !important;
+    color: #000 !important;
+    background: #fff !important;
+    border: 1px solid #999 !important;
+    border-left: 5px solid #000 !important;
+    border-top: 1px solid #999 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .evento-data,
+  .evento-tipo,
+  .evento-esquadrao,
+  [class*="tipo-"] .evento-tipo,
+  [class*="esquadrao-"] .evento-esquadrao {
+    color: #000 !important;
+    background: #eee !important;
+    border: 1px solid #999 !important;
+  }
+
+  .evento-nome,
+  .evento-local {
+    color: #000 !important;
+  }
+}
