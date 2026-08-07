@@ -95,22 +95,25 @@ header {
 
 .cabecalho {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
   width: 100%;
+  text-align: center;
 }
 
 .identidade {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 16px;
   min-width: 0;
 }
 
 .identidade > div:last-child {
   min-width: 0;
+  text-align: left;
 }
 
 .brasao {
@@ -146,11 +149,14 @@ h1 {
   overflow-wrap: anywhere;
 }
 
+/* Área de acesso — centralizada em ambas as páginas */
 .area-acesso {
   display: flex;
-  align-items: center;
-  gap: 10px;
   flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
 }
 
 .mes-cabecalho {
@@ -187,6 +193,8 @@ h1 {
 
 .botao-acesso {
   display: inline-block;
+  width: auto;
+  min-width: 150px;
   padding: 9px 14px;
   color: var(--branco);
   background: rgba(255, 255, 255, 0.12);
@@ -208,6 +216,7 @@ h1 {
 .badge-p3 {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   padding: 8px 12px;
   color: #5a3d00;
@@ -728,10 +737,7 @@ footer {
   }
 
   .cabecalho {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
+    gap: 14px;
   }
 
   .identidade {
@@ -754,18 +760,15 @@ footer {
   }
 
   .area-acesso {
-    display: flex;
     flex-direction: column;
-    align-items: stretch;
+    align-items: center;
     width: 100%;
     gap: 10px;
   }
 
-  .area-acesso > *,
-  .mes-cabecalho,
-  .botao-acesso {
-    width: 100%;
-    max-width: 100%;
+  .botao-acesso,
+  .mes-cabecalho {
+    width: min(280px, 100%);
   }
 
   .painel {
