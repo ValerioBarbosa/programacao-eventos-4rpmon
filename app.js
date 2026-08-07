@@ -203,6 +203,11 @@ function atualizarPermissoes(){
 
 /* ===== RENDERIZAÇÃO ===== */
 function renderizar(){
+  if(!mesSelecionado || !pesquisa || !filtroTipo || !tituloMes || !nomeMesResumo || !totalEventos || !listaEventos){
+    console.error("Elementos essenciais da agenda não foram encontrados no HTML.");
+    return;
+  }
+
   const mes = Number(mesSelecionado.value);
   const termo = pesquisa.value.toLowerCase().trim();
   const tipo = filtroTipo.value;
@@ -271,13 +276,13 @@ window.salvarEvento = async function(){
     return;
   }
 
-  const dataInicial = document.getElementById("dataInicial").value;
-  const dataFinal = document.getElementById("dataFinal").value || dataInicial;
-  const horaInicial = document.getElementById("horaInicial").value;
-  const horaFinal = document.getElementById("horaFinal").value;
-  const nome = document.getElementById("nomeEvento").value.trim();
-  const local = document.getElementById("localEvento").value.trim();
-  const tipo = document.getElementById("tipoEvento").value;
+  const dataInicial = document.getElementById("dataInicial")?.value;
+  const dataFinal = document.getElementById("dataFinal")?.value || dataInicial;
+  const horaInicial = document.getElementById("horaInicial")?.value || "";
+  const horaFinal = document.getElementById("horaFinal")?.value || "";
+  const nome = document.getElementById("nomeEvento")?.value.trim() || "";
+  const local = document.getElementById("localEvento")?.value.trim() || "";
+  const tipo = document.getElementById("tipoEvento")?.value || "";
   const esquadrao = esquadraoEvento ? esquadraoEvento.value : "1";
 
   if(!dataInicial || !nome){
@@ -302,18 +307,18 @@ window.salvarEvento = async function(){
   try {
     if(eventoEmEdicaoId){
       await updateDoc(doc(db, "eventos", eventoEmEdicaoId), dadosEvento);
-      mensagem.textContent = "Evento atualizado com sucesso.";
+      if(mensagem) mensagem.textContent = "Evento atualizado com sucesso.";
     } else {
       await addDoc(collection(db, "eventos"), dadosEvento);
-      mensagem.textContent = "Evento adicionado com sucesso.";
+      if(mensagem) mensagem.textContent = "Evento adicionado com sucesso.";
     }
     cancelarEdicao();
-    mesSelecionado.value = Number(dataInicial.split("-")[1]) - 1;
+    if(mesSelecionado) mesSelecionado.value = Number(dataInicial.split("-")[1]) - 1;
     renderizar();
   } catch(erro){
     alert("Não foi possível salvar o evento. Verifique sua conexão ou as regras do banco.");
   }
-  setTimeout(() => { mensagem.textContent = ""; }, 3000);
+  setTimeout(() => { if(mensagem) mensagem.textContent = ""; }, 3000);
 };
 
 window.iniciarEdicao = function(id){
@@ -322,17 +327,25 @@ window.iniciarEdicao = function(id){
   if(!evento) return;
 
   eventoEmEdicaoId = id;
-  document.getElementById("dataInicial").value = obterDataInicial(evento);
-  document.getElementById("dataFinal").value = obterDataFinal(evento);
-  document.getElementById("horaInicial").value = obterHoraInicial(evento);
-  document.getElementById("horaFinal").value = obterHoraFinal(evento);
-  document.getElementById("nomeEvento").value = evento.nome;
-  document.getElementById("localEvento").value = evento.local || "";
-  document.getElementById("tipoEvento").value = evento.tipo;
+  const campoDataInicial = document.getElementById("dataInicial");
+  const campoDataFinal = document.getElementById("dataFinal");
+  const campoHoraInicial = document.getElementById("horaInicial");
+  const campoHoraFinal = document.getElementById("horaFinal");
+  const campoNomeEvento = document.getElementById("nomeEvento");
+  const campoLocalEvento = document.getElementById("localEvento");
+  const campoTipoEvento = document.getElementById("tipoEvento");
+
+  if(campoDataInicial) campoDataInicial.value = obterDataInicial(evento);
+  if(campoDataFinal) campoDataFinal.value = obterDataFinal(evento);
+  if(campoHoraInicial) campoHoraInicial.value = obterHoraInicial(evento);
+  if(campoHoraFinal) campoHoraFinal.value = obterHoraFinal(evento);
+  if(campoNomeEvento) campoNomeEvento.value = evento.nome || "";
+  if(campoLocalEvento) campoLocalEvento.value = evento.local || "";
+  if(campoTipoEvento) campoTipoEvento.value = evento.tipo || "";
   if(esquadraoEvento) esquadraoEvento.value = obterEsquadrao(evento);
-  tituloFormulario.textContent = "Editar evento — P3";
-  botaoSalvar.textContent = "Salvar alterações";
-  areaAdministrativa.scrollIntoView({ behavior:"smooth" });
+  if(tituloFormulario) tituloFormulario.textContent = "Editar evento — P3";
+  if(botaoSalvar) botaoSalvar.textContent = "Salvar alterações";
+  if(areaAdministrativa) areaAdministrativa.scrollIntoView({ behavior:"smooth" });
 };
 
 function cancelarEdicao(){
@@ -367,6 +380,7 @@ window.imprimirAgenda = function(){
 };
 
 window.compartilharAgenda = async function(){
+  if(!mesSelecionado) return;
   const mes = Number(mesSelecionado.value);
   let texto = `Programação Operacional 4ºRPMon\n${nomesMeses[mes]} de ${ano}\n----------------------------------------\n\n`;
 
@@ -399,12 +413,14 @@ window.compartilharAgenda = async function(){
 };
 
 /* ===== EVENTOS DE INTERFACE ===== */
-mesSelecionado.addEventListener("change", renderizar);
-pesquisa.addEventListener("input", () => {
-  clearTimeout(debounceId);
-  debounceId = setTimeout(renderizar, 200);
-});
-filtroTipo.addEventListener("change", renderizar);
+if(mesSelecionado) mesSelecionado.addEventListener("change", renderizar);
+if(pesquisa){
+  pesquisa.addEventListener("input", () => {
+    clearTimeout(debounceId);
+    debounceId = setTimeout(renderizar, 200);
+  });
+}
+if(filtroTipo) filtroTipo.addEventListener("change", renderizar);
 if(filtroEsquadrao) filtroEsquadrao.addEventListener("change", renderizar);
 
 atualizarPermissoes();
