@@ -1,16 +1,19 @@
 import {
-  db, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query
+  db, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query,
+  auth, onAuthStateChanged, signInWithEmailAndPassword, signOut
 } from "./firebase-config.js";
 
 /* ===== CONFIGURAÇÃO ===== */
-const SENHA_P3 = "4rpmon2026"; // altere para a senha real do P3
 const ano = 2026;
 const nomesMeses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
 let eventos = [];
 let eventoEmEdicaoId = null;
 let eventosFiltradosAtuais = [];
-let modoP3 = sessionStorage.getItem("modoP3") === "sim";
+let modoP3 = false;
+let primeiraCargaConcluida = false;
+let debounceId = null;
+let ultimoElementoComFoco = null;
 
 const mesSelecionado = document.getElementById("mesSelecionado");
 const pesquisa = document.getElementById("pesquisa");
@@ -24,14 +27,16 @@ const mensagem = document.getElementById("mensagem");
 /* Elementos exclusivos do admin.html (podem não existir em index.html) */
 const areaAdministrativa = document.getElementById("areaAdministrativa");
 const sobreposicaoSenha = document.getElementById("sobreposicaoSenha");
+const campoEmail = document.getElementById("campoEmail");
 const campoSenha = document.getElementById("campoSenha");
 const tituloFormulario = document.getElementById("tituloFormulario");
 const botaoSalvar = document.getElementById("botaoSalvar");
+const botaoAcessoP3 = document.getElementById("botaoAcessoP3");
 
 function escaparHTML(texto){
   return String(texto || "")
-    .replaceAll("&","&").replaceAll("<","<")
-    .replaceAll(">",">").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+    .replaceAll("&","&amp;").replaceAll("<","&lt;")
+    .replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
 }
 
 function formatarData(data){
@@ -41,55 +46,86 @@ function formatarData(data){
 
 /* ===== LEITURA EM TEMPO REAL DO FIRESTORE ===== */
 function iniciarEscutaEventos(){
+  if(listaEventos && !primeiraCargaConcluida){
+    listaEventos.innerHTML = `<div class="sem-eventos">Carregando eventos...</div>`;
+  }
   const referenciaEventos = query(collection(db, "eventos"));
-
   onSnapshot(referenciaEventos, (instantaneo) => {
     eventos = [];
     instantaneo.forEach((documento) => {
       eventos.push({ id: documento.id, ...documento.data() });
     });
+    primeiraCargaConcluida = true;
     renderizar();
+  }, () => {
+    if(listaEventos){
+      listaEventos.innerHTML = `<div class="sem-eventos">Não foi possível carregar os eventos. Verifique sua conexão.</div>`;
+    }
   });
 }
 
-/* ===== ACESSO P3 (somente admin.html) ===== */
+/* ===== ACESSO P3 (somente admin.html) — via Firebase Authentication ===== */
 window.abrirCaixaSenha = function(){
   if(!sobreposicaoSenha) return;
+  ultimoElementoComFoco = document.activeElement;
   sobreposicaoSenha.style.display = "flex";
-  campoSenha.value = "";
-  campoSenha.focus();
+  if(campoEmail) campoEmail.value = "";
+  if(campoSenha) campoSenha.value = "";
+  (campoEmail || campoSenha).focus();
 };
 
 window.fecharCaixaSenha = function(){
   if(!sobreposicaoSenha) return;
   sobreposicaoSenha.style.display = "none";
+  if(ultimoElementoComFoco) ultimoElementoComFoco.focus();
 };
 
-window.validarSenha = function(){
-  if(campoSenha.value === SENHA_P3){
-    modoP3 = true;
-    sessionStorage.setItem("modoP3","sim");
+/* Fecha o modal clicando fora da caixa ou com Esc */
+if(sobreposicaoSenha){
+  sobreposicaoSenha.addEventListener("click", (evento) => {
+    if(evento.target === sobreposicaoSenha) window.fecharCaixaSenha();
+  });
+  document.addEventListener("keydown", (evento) => {
+    if(evento.key === "Escape" && sobreposicaoSenha.style.display === "flex"){
+      window.fecharCaixaSenha();
+    }
+  });
+}
+
+window.validarSenha = async function(){
+  if(!campoEmail || !campoSenha) return;
+  const email = campoEmail.value.trim();
+  const senha = campoSenha.value;
+  if(!email || !senha){
+    alert("Informe e-mail e senha.");
+    return;
+  }
+  try {
+    await signInWithEmailAndPassword(auth, email, senha);
     window.fecharCaixaSenha();
-    atualizarPermissoes();
-    renderizar();
-  } else {
-    alert("Senha incorreta.");
+  } catch (erro) {
+    alert("E-mail ou senha incorretos.");
   }
 };
 
-window.sairModoP3 = function(){
-  modoP3 = false;
-  sessionStorage.removeItem("modoP3");
-  cancelarEdicao();
-  atualizarPermissoes();
-  renderizar();
+window.sairModoP3 = async function(){
+  try {
+    await signOut(auth);
+  } catch (erro) {
+    alert("Não foi possível sair. Tente novamente.");
+  }
 };
 
+onAuthStateChanged(auth, (usuario) => {
+  modoP3 = !!usuario;
+  if(!modoP3) cancelarEdicao();
+  atualizarPermissoes();
+  renderizar();
+});
+
 function atualizarPermissoes(){
-  const botaoAcessoP3 = document.getElementById("botaoAcessoP3");
   const badgeP3 = document.getElementById("badgeP3");
   if(!botaoAcessoP3 || !badgeP3 || !areaAdministrativa) return;
-
   if(modoP3){
     botaoAcessoP3.style.display = "none";
     badgeP3.style.display = "flex";
@@ -111,8 +147,9 @@ function renderizar(){
   nomeMesResumo.textContent = nomesMeses[mes];
 
   const filtrados = eventos.filter(e => {
+    if(!e.data) return false;
     const mesEvento = Number(e.data.split("-")[1]) - 1;
-    const textoEvento = `${e.nome} ${e.local} ${e.tipo}`.toLowerCase();
+    const textoEvento = `${e.nome || ""} ${e.local || ""} ${e.tipo || ""}`.toLowerCase();
     const correspondeMes = mesEvento === mes;
     const correspondeTexto = !termo || textoEvento.includes(termo);
     const correspondeTipo = tipo === "todos" || e.tipo === tipo;
@@ -134,9 +171,9 @@ function renderizar(){
 
     const acoes = (modoP3 && areaAdministrativa)
       ? `<div class="acoes-card">
-           <button class="botao-editar" onclick="iniciarEdicao('${e.id}')">Editar</button>
-           <button class="botao-excluir" onclick="excluirEvento('${e.id}')">Excluir</button>
-         </div>`
+          <button class="botao-editar" onclick="iniciarEdicao('${e.id}')">Editar</button>
+          <button class="botao-excluir" onclick="excluirEvento('${e.id}')">Excluir</button>
+        </div>`
       : "";
 
     card.innerHTML = `
@@ -180,13 +217,12 @@ window.salvarEvento = async function(){
       await addDoc(collection(db, "eventos"), { data, hora, nome, local, tipo });
       mensagem.textContent = "Evento adicionado com sucesso.";
     }
-
     cancelarEdicao();
     mesSelecionado.value = Number(data.split("-")[1]) - 1;
+    renderizar();
   } catch(erro){
     alert("Não foi possível salvar o evento. Verifique sua conexão ou as regras do banco.");
   }
-
   setTimeout(() => { mensagem.textContent = ""; }, 3000);
 };
 
@@ -201,7 +237,6 @@ window.iniciarEdicao = function(id){
   document.getElementById("nomeEvento").value = evento.nome;
   document.getElementById("localEvento").value = evento.local || "";
   document.getElementById("tipoEvento").value = evento.tipo;
-
   tituloFormulario.textContent = "Editar evento — P3";
   botaoSalvar.textContent = "Salvar alterações";
   areaAdministrativa.scrollIntoView({ behavior:"smooth" });
@@ -254,7 +289,6 @@ window.compartilharAgenda = async function(){
   }
 
   const titulo = `Agenda — ${nomesMeses[mes]} de ${ano}`;
-
   try {
     if(navigator.share){
       await navigator.share({ title: titulo, text: texto });
@@ -271,7 +305,10 @@ window.compartilharAgenda = async function(){
 
 /* ===== EVENTOS DE INTERFACE ===== */
 mesSelecionado.addEventListener("change", renderizar);
-pesquisa.addEventListener("input", renderizar);
+pesquisa.addEventListener("input", () => {
+  clearTimeout(debounceId);
+  debounceId = setTimeout(renderizar, 200);
+});
 filtroTipo.addEventListener("change", renderizar);
 
 atualizarPermissoes();
