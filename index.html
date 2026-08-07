@@ -4,9 +4,41 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Programação Operacional 4ºRPMon</title>
+<meta name="description" content="Agenda de eventos e atividades do 4ºRPMon — 2026.">
+<meta property="og:title" content="Programação Operacional 4ºRPMon">
+<meta property="og:description" content="Agenda de eventos e atividades do 4ºRPMon — 2026.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://www.gstatic.com">
 <link rel="stylesheet" href="style.css">
+<style media="print">
+  header .area-acesso,
+  .aviso-visualizacao,
+  .painel,
+  .resumo,
+  footer {
+    display: none !important;
+  }
+  .grade-eventos {
+    display: block !important;
+  }
+  .evento-card {
+    break-inside: avoid;
+    border: 1px solid #999;
+    margin-bottom: 8px;
+    padding: 8px;
+  }
+  .acoes-card {
+    display: none !important;
+  }
+</style>
 </head>
 <body>
+
+<noscript>
+  <p style="text-align:center; padding:16px;">
+    Esta página precisa de JavaScript habilitado para exibir a agenda de eventos.
+  </p>
+</noscript>
 
 <header>
   <div class="container cabecalho">
@@ -84,7 +116,7 @@
 
   <h2 class="titulo-mes" id="tituloMes">Agosto de 2026</h2>
 
-  <section class="grade-eventos" id="listaEventos"></section>
+  <section class="grade-eventos" id="listaEventos" aria-live="polite"></section>
 </main>
 
 <footer>Programação Operacional 4ºRPMon — Agenda de eventos de 2026</footer>
