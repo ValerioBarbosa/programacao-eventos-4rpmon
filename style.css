@@ -24,12 +24,19 @@
   padding: 0;
 }
 
+*,
+*::before,
+*::after {
+  min-width: 0;
+}
+
 html {
   scroll-behavior: smooth;
 }
 
 html,
 body {
+  width: 100%;
   max-width: 100%;
   overflow-x: hidden;
 }
@@ -73,14 +80,17 @@ button:disabled {
 ========================= */
 
 header {
+  width: 100%;
   background: linear-gradient(135deg, var(--verde-escuro), var(--verde));
   color: var(--branco);
   padding: 22px 18px;
 }
 
 .container {
-  width: min(1180px, 100%);
-  margin: 0 auto;
+  width: 100%;
+  max-width: 1180px;
+  margin-right: auto;
+  margin-left: auto;
 }
 
 .cabecalho {
@@ -89,12 +99,18 @@ header {
   justify-content: space-between;
   gap: 20px;
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .identidade {
   display: flex;
   align-items: center;
   gap: 16px;
+  min-width: 0;
+}
+
+.identidade > div:last-child {
+  min-width: 0;
 }
 
 .brasao {
@@ -120,12 +136,14 @@ header {
 h1 {
   font-size: clamp(1.3rem, 4vw, 2.1rem);
   line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 
 .subtitulo {
   margin-top: 5px;
   color: var(--verde-claro);
   font-size: 0.95rem;
+  overflow-wrap: anywhere;
 }
 
 .area-acesso {
@@ -214,15 +232,27 @@ h1 {
 ========================= */
 
 main {
+  width: 100%;
   padding: 26px 18px 48px;
 }
 
+/* =========================================================
+   PAINEL DE FILTROS — DESKTOP (tudo em uma linha)
+========================================================= */
+
 .painel {
   display: grid;
-  grid-template-columns: minmax(220px, 1.6fr) minmax(190px, 1fr) minmax(190px, 1fr) auto auto;
+  grid-template-columns:
+    minmax(0, 1.45fr)
+    minmax(0, 1.15fr)
+    minmax(0, 1.05fr)
+    minmax(130px, 0.8fr)
+    minmax(145px, 0.9fr);
   align-items: end;
   gap: 12px;
   width: 100%;
+  max-width: 100%;
+  overflow: hidden;
   margin-bottom: 22px;
   padding: 16px;
   background: var(--branco);
@@ -236,12 +266,19 @@ main {
   flex-direction: column;
   gap: 5px;
   min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .campo label {
+  display: block;
+  max-width: 100%;
   color: var(--cinza);
   font-size: 0.8rem;
   font-weight: bold;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 input,
@@ -257,15 +294,18 @@ button {
 input,
 select,
 textarea {
+  display: block;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   color: var(--azul);
   background: var(--branco);
 }
 
 select {
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  overflow: hidden;
 }
 
 textarea {
@@ -292,6 +332,15 @@ button {
 button:hover {
   background: var(--verde-escuro);
   transform: translateY(-1px);
+}
+
+.painel > button {
+  width: 100%;
+  height: 42px;
+  min-height: 42px;
+  padding: 8px 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .botao-secundario {
@@ -337,16 +386,21 @@ textarea:focus {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  width: 100%;
+  max-width: 100%;
   margin-bottom: 18px;
 }
 
 .indicador {
   padding: 8px 13px;
+  min-width: 0;
+  max-width: 100%;
   color: var(--cinza);
   background: var(--branco);
   border: 1px solid var(--borda);
   border-radius: 8px;
   font-size: 0.88rem;
+  overflow-wrap: anywhere;
 }
 
 .indicador strong {
@@ -357,6 +411,7 @@ textarea:focus {
   margin-bottom: 14px;
   color: var(--azul);
   font-size: 1.4rem;
+  overflow-wrap: anywhere;
 }
 
 /* =========================
@@ -367,12 +422,16 @@ textarea:focus {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 14px;
+  width: 100%;
+  max-width: 100%;
 }
 
 .evento-card {
   position: relative;
   width: 100%;
   min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   padding: 14px;
   background: var(--branco);
   border: 1px solid var(--borda);
@@ -396,6 +455,10 @@ textarea:focus {
   border-radius: 6px;
   font-size: 0.7rem;
   font-weight: bold;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: top;
 }
 
 .evento-data {
@@ -417,13 +480,17 @@ textarea:focus {
   margin-bottom: 5px;
   font-size: 1rem;
   font-weight: bold;
+  max-width: 100%;
   overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .evento-local {
   color: var(--cinza);
   font-size: 0.85rem;
+  max-width: 100%;
   overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .acoes-card {
@@ -628,32 +695,16 @@ footer {
   background: #4b5768;
 }
 
-/* =========================
-   RESPONSIVIDADE
-========================= */
+/* =========================================================
+   TABLETS (701px a 1050px)
+========================================================= */
 
-@media (max-width: 1200px) {
+@media (max-width: 1050px) and (min-width: 701px) {
   .painel {
-    grid-template-columns: minmax(200px, 1.4fr) minmax(170px, 1fr) minmax(170px, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .painel button,
-  .painel .botao-secundario {
-    grid-column: span 1;
-  }
-}
-
-@media (max-width: 900px) {
-  .painel {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .painel .campo:first-child {
-    grid-column: 1 / -1;
-  }
-
-  .painel button,
-  .painel .botao-secundario {
+  .painel > button {
     width: 100%;
   }
 
@@ -662,55 +713,86 @@ footer {
   }
 }
 
+/* =========================================================
+   CELULARES (até 700px)
+========================================================= */
+
 @media (max-width: 700px) {
   header {
-    padding: 18px 12px;
+    padding: 16px 12px;
   }
 
-  .cabecalho,
-  .identidade,
-  .area-acesso {
-    align-items: stretch;
+  main {
+    padding: 20px 12px 35px;
+  }
+
+  .cabecalho {
+    display: flex;
     flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
   }
 
   .identidade {
     flex-direction: row;
     align-items: center;
+    gap: 10px;
+  }
+
+  .identidade h1 {
+    font-size: 1.25rem;
+  }
+
+  .subtitulo {
+    font-size: 0.82rem;
   }
 
   .brasao {
-    width: 62px;
-    height: 70px;
+    width: 58px;
+    height: 66px;
   }
 
-  .area-acesso,
+  .area-acesso {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .area-acesso > *,
   .mes-cabecalho,
   .botao-acesso {
     width: 100%;
-  }
-
-  main {
-    width: 100%;
-    padding: 20px 12px 35px;
+    max-width: 100%;
   }
 
   .painel {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
     padding: 14px;
+    overflow: visible;
   }
 
-  .painel .campo:first-child {
-    grid-column: auto;
+  .painel > .campo,
+  .painel > button {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    flex: 0 0 auto;
   }
 
-  .form-grid {
-    grid-template-columns: 1fr;
+  .painel > button {
+    height: 44px;
+    min-height: 44px;
+    white-space: normal;
   }
 
   .resumo {
-    display: grid;
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 8px;
   }
 
@@ -725,6 +807,7 @@ footer {
 
   .grade-eventos {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .acoes-card {
@@ -735,8 +818,44 @@ footer {
     width: 100%;
   }
 
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
   .linha-botoes {
     flex-direction: column;
+  }
+
+  .linha-botoes button {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   CELULARES MUITO PEQUENOS (até 380px)
+========================================================= */
+
+@media (max-width: 380px) {
+  main {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .painel {
+    padding: 12px;
+  }
+
+  .identidade h1 {
+    font-size: 1.1rem;
+  }
+
+  .subtitulo {
+    font-size: 0.75rem;
+  }
+
+  .brasao {
+    width: 52px;
+    height: 60px;
   }
 }
 
