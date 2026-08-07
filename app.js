@@ -7,12 +7,21 @@ import {
 const ano = 2026;
 const nomesMeses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
-/* Mapa de classes CSS por tipo de evento (usado para colorir os cards) */
 const classesPorTipo = {
-  "Instrução": "tipo-instrucao",
-  "Operação": "tipo-operacao",
-  "Solenidade": "tipo-solenidade",
-  "Dragões, Representações e Outros": "tipo-dragoes"
+  "POLOST": "tipo-01",
+  "Operações": "tipo-02",
+  "Manifestação Social": "tipo-03",
+  "Jogos de Futebol": "tipo-04",
+  "Passeio a Cavalo": "tipo-05",
+  "Carnaval": "tipo-06",
+  "Cavalgadas": "tipo-07",
+  "Rodeios": "tipo-08",
+  "Dragões, Representações e Outros": "tipo-09",
+  "Clarim, Formaturas e Reuniões": "tipo-10",
+  "Shows e Eventos": "tipo-11",
+  "Empréstimo de VTR ou CAM BOX": "tipo-12",
+  "Transporte de Equinos e Provas": "tipo-13",
+  "Viagens e Deslocamentos Operacionais": "tipo-14"
 };
 
 let eventos = [];
@@ -26,6 +35,7 @@ let ultimoElementoComFoco = null;
 const mesSelecionado = document.getElementById("mesSelecionado");
 const pesquisa = document.getElementById("pesquisa");
 const filtroTipo = document.getElementById("filtroTipo");
+const filtroEsquadrao = document.getElementById("filtroEsquadrao");
 const tituloMes = document.getElementById("tituloMes");
 const nomeMesResumo = document.getElementById("nomeMesResumo");
 const totalEventos = document.getElementById("totalEventos");
@@ -40,6 +50,7 @@ const campoSenha = document.getElementById("campoSenha");
 const tituloFormulario = document.getElementById("tituloFormulario");
 const botaoSalvar = document.getElementById("botaoSalvar");
 const botaoAcessoP3 = document.getElementById("botaoAcessoP3");
+const esquadraoEvento = document.getElementById("esquadraoEvento");
 
 function escaparHTML(texto){
   return String(texto || "")
@@ -66,6 +77,9 @@ function obterHoraInicial(evento){
 function obterHoraFinal(evento){
   return evento.horaFinal || "";
 }
+function obterEsquadrao(evento){
+  return evento.esquadrao || "1";
+}
 
 function formatarPeriodoData(evento){
   const inicio = obterDataInicial(evento);
@@ -85,6 +99,14 @@ function formatarPeriodoHorario(evento){
 
 function obterClasseTipo(tipo){
   return classesPorTipo[tipo] || "tipo-outros";
+}
+
+function obterClasseEsquadrao(esquadrao){
+  return esquadrao === "2" ? "esquadrao-2" : "esquadrao-1";
+}
+
+function obterTextoEsquadrao(esquadrao){
+  return esquadrao === "2" ? "2º Esquadrão" : "1º Esquadrão";
 }
 
 /* ===== LEITURA EM TEMPO REAL DO FIRESTORE ===== */
@@ -123,7 +145,6 @@ window.fecharCaixaSenha = function(){
   if(ultimoElementoComFoco) ultimoElementoComFoco.focus();
 };
 
-/* Fecha o modal clicando fora da caixa ou com Esc */
 if(sobreposicaoSenha){
   sobreposicaoSenha.addEventListener("click", (evento) => {
     if(evento.target === sobreposicaoSenha) window.fecharCaixaSenha();
@@ -185,6 +206,7 @@ function renderizar(){
   const mes = Number(mesSelecionado.value);
   const termo = pesquisa.value.toLowerCase().trim();
   const tipo = filtroTipo.value;
+  const esquadrao = filtroEsquadrao ? filtroEsquadrao.value : "todos";
 
   tituloMes.textContent = `${nomesMeses[mes]} de ${ano}`;
   nomeMesResumo.textContent = nomesMeses[mes];
@@ -201,8 +223,9 @@ function renderizar(){
     const textoEvento = `${e.nome || ""} ${e.local || ""} ${e.tipo || ""}`.toLowerCase();
     const correspondeTexto = !termo || textoEvento.includes(termo);
     const correspondeTipo = tipo === "todos" || e.tipo === tipo;
+    const correspondeEsquadrao = esquadrao === "todos" || obterEsquadrao(e) === esquadrao;
 
-    return correspondeMes && correspondeTexto && correspondeTipo;
+    return correspondeMes && correspondeTexto && correspondeTipo && correspondeEsquadrao;
   }).sort((a,b) => {
     const chaveA = `${obterDataInicial(a)}${obterHoraInicial(a)}`;
     const chaveB = `${obterDataInicial(b)}${obterHoraInicial(b)}`;
@@ -220,7 +243,7 @@ function renderizar(){
 
   filtrados.forEach(e => {
     const card = document.createElement("article");
-    card.className = `evento-card ${obterClasseTipo(e.tipo)}`;
+    card.className = `evento-card ${obterClasseTipo(e.tipo)} ${obterClasseEsquadrao(obterEsquadrao(e))}`;
 
     const acoes = (modoP3 && areaAdministrativa)
       ? `<div class="acoes-card">
@@ -232,6 +255,7 @@ function renderizar(){
     card.innerHTML = `
       <span class="evento-data">${escaparHTML(formatarPeriodoData(e))} · ${escaparHTML(formatarPeriodoHorario(e))}</span>
       <span class="evento-tipo">${escaparHTML(e.tipo)}</span>
+      <span class="evento-esquadrao">${escaparHTML(obterTextoEsquadrao(obterEsquadrao(e)))}</span>
       <div class="evento-nome">${escaparHTML(e.nome)}</div>
       <div class="evento-local">${escaparHTML(e.local)}</div>
       ${acoes}
@@ -254,6 +278,7 @@ window.salvarEvento = async function(){
   const nome = document.getElementById("nomeEvento").value.trim();
   const local = document.getElementById("localEvento").value.trim();
   const tipo = document.getElementById("tipoEvento").value;
+  const esquadrao = esquadraoEvento ? esquadraoEvento.value : "1";
 
   if(!dataInicial || !nome){
     alert("Informe a data inicial e o nome do evento.");
@@ -272,7 +297,7 @@ window.salvarEvento = async function(){
     return;
   }
 
-  const dadosEvento = { dataInicial, dataFinal, horaInicial, horaFinal, nome, local, tipo };
+  const dadosEvento = { dataInicial, dataFinal, horaInicial, horaFinal, nome, local, tipo, esquadrao };
 
   try {
     if(eventoEmEdicaoId){
@@ -304,6 +329,7 @@ window.iniciarEdicao = function(id){
   document.getElementById("nomeEvento").value = evento.nome;
   document.getElementById("localEvento").value = evento.local || "";
   document.getElementById("tipoEvento").value = evento.tipo;
+  if(esquadraoEvento) esquadraoEvento.value = obterEsquadrao(evento);
   tituloFormulario.textContent = "Editar evento — P3";
   botaoSalvar.textContent = "Salvar alterações";
   areaAdministrativa.scrollIntoView({ behavior:"smooth" });
@@ -316,6 +342,7 @@ function cancelarEdicao(){
     const elemento = document.getElementById(id);
     if(elemento) elemento.value = "";
   });
+  if(esquadraoEvento) esquadraoEvento.value = "1";
   if(tituloFormulario) tituloFormulario.textContent = "Adicionar evento — P3";
   if(botaoSalvar) botaoSalvar.textContent = "Adicionar";
 }
@@ -350,7 +377,7 @@ window.compartilharAgenda = async function(){
       texto += `${indice+1}. ${formatarPeriodoData(e)}`;
       const horario = formatarPeriodoHorario(e);
       if(horario !== "--:--") texto += ` às ${horario}`;
-      texto += `\nEvento: ${e.nome}\nTipo: ${e.tipo}\n`;
+      texto += `\nEvento: ${e.nome}\nTipo: ${e.tipo}\nEsquadrão: ${obterTextoEsquadrao(obterEsquadrao(e))}\n`;
       if(e.local) texto += `Local/observação: ${e.local}\n`;
       texto += "\n";
     });
@@ -378,6 +405,7 @@ pesquisa.addEventListener("input", () => {
   debounceId = setTimeout(renderizar, 200);
 });
 filtroTipo.addEventListener("change", renderizar);
+if(filtroEsquadrao) filtroEsquadrao.addEventListener("change", renderizar);
 
 atualizarPermissoes();
 iniciarEscutaEventos();
