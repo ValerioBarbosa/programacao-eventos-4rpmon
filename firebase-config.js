@@ -11,6 +11,13 @@ import {
   query
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+import {
+  getAuth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyBY2xZjgl03shfbry69J1Lwnex7b2m_ha8",
   authDomain: "agenda-4rpmon.firebaseapp.com",
@@ -22,6 +29,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 export {
   db,
@@ -31,5 +39,9 @@ export {
   deleteDoc,
   doc,
   onSnapshot,
-  query
+  query,
+  auth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut
 };
