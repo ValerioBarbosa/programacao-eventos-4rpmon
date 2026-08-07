@@ -7,6 +7,14 @@ import {
 const ano = 2026;
 const nomesMeses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
+/* Mapa de classes CSS por tipo de evento (usado para colorir os cards) */
+const classesPorTipo = {
+  "Instrução": "tipo-instrucao",
+  "Operação": "tipo-operacao",
+  "Solenidade": "tipo-solenidade",
+  "Dragões, Representações e Outros": "tipo-dragoes"
+};
+
 let eventos = [];
 let eventoEmEdicaoId = null;
 let eventosFiltradosAtuais = [];
@@ -40,8 +48,43 @@ function escaparHTML(texto){
 }
 
 function formatarData(data){
+  if(!data) return "";
   const [a,m,d] = data.split("-");
   return `${d}/${m}/${a}`;
+}
+
+/* Compatibilidade: eventos antigos usavam "data" e "hora" */
+function obterDataInicial(evento){
+  return evento.dataInicial || evento.data || "";
+}
+function obterDataFinal(evento){
+  return evento.dataFinal || evento.dataInicial || evento.data || "";
+}
+function obterHoraInicial(evento){
+  return evento.horaInicial || evento.hora || "";
+}
+function obterHoraFinal(evento){
+  return evento.horaFinal || "";
+}
+
+function formatarPeriodoData(evento){
+  const inicio = obterDataInicial(evento);
+  const fim = obterDataFinal(evento);
+  if(!inicio) return "";
+  return inicio === fim
+    ? formatarData(inicio)
+    : `${formatarData(inicio)} a ${formatarData(fim)}`;
+}
+
+function formatarPeriodoHorario(evento){
+  const inicio = obterHoraInicial(evento);
+  const fim = obterHoraFinal(evento);
+  if(!inicio) return "--:--";
+  return fim ? `${inicio} às ${fim}` : inicio;
+}
+
+function obterClasseTipo(tipo){
+  return classesPorTipo[tipo] || "tipo-outros";
 }
 
 /* ===== LEITURA EM TEMPO REAL DO FIRESTORE ===== */
@@ -71,7 +114,7 @@ window.abrirCaixaSenha = function(){
   sobreposicaoSenha.style.display = "flex";
   if(campoEmail) campoEmail.value = "";
   if(campoSenha) campoSenha.value = "";
-  (campoEmail || campoSenha).focus();
+  (campoEmail || campoSenha)?.focus();
 };
 
 window.fecharCaixaSenha = function(){
@@ -147,14 +190,24 @@ function renderizar(){
   nomeMesResumo.textContent = nomesMeses[mes];
 
   const filtrados = eventos.filter(e => {
-    if(!e.data) return false;
-    const mesEvento = Number(e.data.split("-")[1]) - 1;
+    const dataInicial = obterDataInicial(e);
+    const dataFinal = obterDataFinal(e);
+    if(!dataInicial) return false;
+
+    const mesInicial = Number(dataInicial.split("-")[1]) - 1;
+    const mesFinal = Number(dataFinal.split("-")[1]) - 1;
+    const correspondeMes = mes >= mesInicial && mes <= mesFinal;
+
     const textoEvento = `${e.nome || ""} ${e.local || ""} ${e.tipo || ""}`.toLowerCase();
-    const correspondeMes = mesEvento === mes;
     const correspondeTexto = !termo || textoEvento.includes(termo);
     const correspondeTipo = tipo === "todos" || e.tipo === tipo;
+
     return correspondeMes && correspondeTexto && correspondeTipo;
-  }).sort((a,b) => `${a.data}${a.hora||""}`.localeCompare(`${b.data}${b.hora||""}`));
+  }).sort((a,b) => {
+    const chaveA = `${obterDataInicial(a)}${obterHoraInicial(a)}`;
+    const chaveB = `${obterDataInicial(b)}${obterHoraInicial(b)}`;
+    return chaveA.localeCompare(chaveB);
+  });
 
   eventosFiltradosAtuais = filtrados;
   totalEventos.textContent = filtrados.length;
@@ -167,7 +220,7 @@ function renderizar(){
 
   filtrados.forEach(e => {
     const card = document.createElement("article");
-    card.className = "evento-card";
+    card.className = `evento-card ${obterClasseTipo(e.tipo)}`;
 
     const acoes = (modoP3 && areaAdministrativa)
       ? `<div class="acoes-card">
@@ -177,7 +230,7 @@ function renderizar(){
       : "";
 
     card.innerHTML = `
-      <span class="evento-data">${escaparHTML(formatarData(e.data))} · ${escaparHTML(e.hora || "--:--")}</span>
+      <span class="evento-data">${escaparHTML(formatarPeriodoData(e))} · ${escaparHTML(formatarPeriodoHorario(e))}</span>
       <span class="evento-tipo">${escaparHTML(e.tipo)}</span>
       <div class="evento-nome">${escaparHTML(e.nome)}</div>
       <div class="evento-local">${escaparHTML(e.local)}</div>
@@ -194,31 +247,43 @@ window.salvarEvento = async function(){
     return;
   }
 
-  const data = document.getElementById("dataEvento").value;
-  const hora = document.getElementById("horaEvento").value;
+  const dataInicial = document.getElementById("dataInicial").value;
+  const dataFinal = document.getElementById("dataFinal").value || dataInicial;
+  const horaInicial = document.getElementById("horaInicial").value;
+  const horaFinal = document.getElementById("horaFinal").value;
   const nome = document.getElementById("nomeEvento").value.trim();
   const local = document.getElementById("localEvento").value.trim();
   const tipo = document.getElementById("tipoEvento").value;
 
-  if(!data || !nome){
-    alert("Informe a data e o nome do evento.");
+  if(!dataInicial || !nome){
+    alert("Informe a data inicial e o nome do evento.");
     return;
   }
-  if(!data.startsWith("2026-")){
-    alert("A data deve pertencer ao ano de 2026.");
+  if(!dataInicial.startsWith("2026-") || !dataFinal.startsWith("2026-")){
+    alert("As datas devem pertencer ao ano de 2026.");
+    return;
+  }
+  if(dataFinal < dataInicial){
+    alert("A data final não pode ser anterior à data inicial.");
+    return;
+  }
+  if(dataInicial === dataFinal && horaInicial && horaFinal && horaFinal < horaInicial){
+    alert("O horário final não pode ser anterior ao horário inicial.");
     return;
   }
 
+  const dadosEvento = { dataInicial, dataFinal, horaInicial, horaFinal, nome, local, tipo };
+
   try {
     if(eventoEmEdicaoId){
-      await updateDoc(doc(db, "eventos", eventoEmEdicaoId), { data, hora, nome, local, tipo });
+      await updateDoc(doc(db, "eventos", eventoEmEdicaoId), dadosEvento);
       mensagem.textContent = "Evento atualizado com sucesso.";
     } else {
-      await addDoc(collection(db, "eventos"), { data, hora, nome, local, tipo });
+      await addDoc(collection(db, "eventos"), dadosEvento);
       mensagem.textContent = "Evento adicionado com sucesso.";
     }
     cancelarEdicao();
-    mesSelecionado.value = Number(data.split("-")[1]) - 1;
+    mesSelecionado.value = Number(dataInicial.split("-")[1]) - 1;
     renderizar();
   } catch(erro){
     alert("Não foi possível salvar o evento. Verifique sua conexão ou as regras do banco.");
@@ -232,8 +297,10 @@ window.iniciarEdicao = function(id){
   if(!evento) return;
 
   eventoEmEdicaoId = id;
-  document.getElementById("dataEvento").value = evento.data;
-  document.getElementById("horaEvento").value = evento.hora || "";
+  document.getElementById("dataInicial").value = obterDataInicial(evento);
+  document.getElementById("dataFinal").value = obterDataFinal(evento);
+  document.getElementById("horaInicial").value = obterHoraInicial(evento);
+  document.getElementById("horaFinal").value = obterHoraFinal(evento);
   document.getElementById("nomeEvento").value = evento.nome;
   document.getElementById("localEvento").value = evento.local || "";
   document.getElementById("tipoEvento").value = evento.tipo;
@@ -244,7 +311,7 @@ window.iniciarEdicao = function(id){
 
 function cancelarEdicao(){
   eventoEmEdicaoId = null;
-  const campos = ["dataEvento","horaEvento","nomeEvento","localEvento"];
+  const campos = ["dataInicial","dataFinal","horaInicial","horaFinal","nomeEvento","localEvento"];
   campos.forEach(id => {
     const elemento = document.getElementById(id);
     if(elemento) elemento.value = "";
@@ -280,8 +347,9 @@ window.compartilharAgenda = async function(){
     texto += "Nenhum evento cadastrado para este mês.";
   } else {
     eventosFiltradosAtuais.forEach((e,indice) => {
-      texto += `${indice+1}. ${formatarData(e.data)}`;
-      if(e.hora) texto += ` às ${e.hora}`;
+      texto += `${indice+1}. ${formatarPeriodoData(e)}`;
+      const horario = formatarPeriodoHorario(e);
+      if(horario !== "--:--") texto += ` às ${horario}`;
       texto += `\nEvento: ${e.nome}\nTipo: ${e.tipo}\n`;
       if(e.local) texto += `Local/observação: ${e.local}\n`;
       texto += "\n";
