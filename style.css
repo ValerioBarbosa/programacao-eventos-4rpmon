@@ -28,6 +28,12 @@ html {
   scroll-behavior: smooth;
 }
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   min-width: 320px;
   background: var(--fundo);
@@ -213,9 +219,10 @@ main {
 
 .painel {
   display: grid;
-  grid-template-columns: minmax(200px, 1.4fr) minmax(170px, 1fr) minmax(160px, 1fr) auto auto;
+  grid-template-columns: minmax(220px, 1.6fr) minmax(190px, 1fr) minmax(190px, 1fr) auto auto;
   align-items: end;
   gap: 12px;
+  width: 100%;
   margin-bottom: 22px;
   padding: 16px;
   background: var(--branco);
@@ -228,6 +235,7 @@ main {
   display: flex;
   flex-direction: column;
   gap: 5px;
+  min-width: 0;
 }
 
 .campo label {
@@ -254,6 +262,12 @@ textarea {
   background: var(--branco);
 }
 
+select {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
 textarea {
   min-height: 90px;
   resize: vertical;
@@ -265,10 +279,13 @@ textarea::placeholder {
 }
 
 button {
+  min-width: 0;
   color: var(--branco);
   background: var(--verde);
   border: none;
   font-weight: bold;
+  line-height: 1.2;
+  white-space: nowrap;
   transition: background 0.2s ease, transform 0.2s ease;
 }
 
@@ -354,6 +371,8 @@ textarea:focus {
 
 .evento-card {
   position: relative;
+  width: 100%;
+  min-width: 0;
   padding: 14px;
   background: var(--branco);
   border: 1px solid var(--borda);
@@ -613,13 +632,28 @@ footer {
    RESPONSIVIDADE
 ========================= */
 
-@media (max-width: 1100px) {
+@media (max-width: 1200px) {
+  .painel {
+    grid-template-columns: minmax(200px, 1.4fr) minmax(170px, 1fr) minmax(170px, 1fr);
+  }
+
+  .painel button,
+  .painel .botao-secundario {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 900px) {
   .painel {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .painel .campo:first-child {
+    grid-column: 1 / -1;
+  }
+
   .painel button,
-  .painel a {
+  .painel .botao-secundario {
     width: 100%;
   }
 
@@ -657,12 +691,36 @@ footer {
   }
 
   main {
-    padding: 20px 10px 35px;
+    width: 100%;
+    padding: 20px 12px 35px;
   }
 
-  .painel,
+  .painel {
+    grid-template-columns: 1fr;
+    padding: 14px;
+  }
+
+  .painel .campo:first-child {
+    grid-column: auto;
+  }
+
   .form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .resumo {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .indicador {
+    width: 100%;
+  }
+
+  .titulo-mes {
+    font-size: 1.35rem;
+    line-height: 1.25;
   }
 
   .grade-eventos {
