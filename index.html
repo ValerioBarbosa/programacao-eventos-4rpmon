@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Programação Operacional 4ºRPMon</title>
-<meta name="description" content="Agenda de eventos e atividades do 4ºRPMon — 2026.">
-<meta property="og:title" content="Programação Operacional 4ºRPMon">
-<meta property="og:description" content="Agenda de eventos e atividades do 4ºRPMon — 2026.">
+<title>ProgramaÃ§Ã£o Operacional 4ÂºRPMon</title>
+<meta name="description" content="Agenda de eventos e atividades do 4ÂºRPMon â€” 2026.">
+<meta property="og:title" content="ProgramaÃ§Ã£o Operacional 4ÂºRPMon">
+<meta property="og:description" content="Agenda de eventos e atividades do 4ÂºRPMon â€” 2026.">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://www.gstatic.com">
 <link rel="stylesheet" href="style.css">
@@ -15,17 +15,17 @@
 
 <noscript>
   <p style="text-align:center; padding:16px;">
-    Esta página precisa de JavaScript habilitado para exibir a agenda de eventos.
+    Esta pÃ¡gina precisa de JavaScript habilitado para exibir a agenda de eventos.
   </p>
 </noscript>
 
 <header>
   <div class="container cabecalho">
     <div class="identidade">
-      <div class="brasao"><img src="image.png" alt="Brasão do 4º RPMon"></div>
+      <div class="brasao"><img src="image.png" alt="BrasÃ£o do 4Âº RPMon"></div>
       <div>
-        <h1>Programação Operacional 4ºRPMon</h1>
-        <p class="subtitulo">Agenda de eventos e atividades — 2026</p>
+        <h1>ProgramaÃ§Ã£o Operacional 4ÂºRPMon</h1>
+        <p class="subtitulo">Agenda de eventos e atividades â€” 2026</p>
       </div>
     </div>
 
@@ -33,11 +33,11 @@
       <a class="botao-acesso" href="admin.html">Acesso P3</a>
 
       <div class="mes-cabecalho">
-        <label for="mesSelecionado">Mês de referência</label>
+        <label for="mesSelecionado">MÃªs de referÃªncia</label>
         <select id="mesSelecionado">
           <option value="0">Janeiro</option>
           <option value="1">Fevereiro</option>
-          <option value="2">Março</option>
+          <option value="2">MarÃ§o</option>
           <option value="3">Abril</option>
           <option value="4">Maio</option>
           <option value="5">Junho</option>
@@ -55,49 +55,62 @@
 
 <main class="container">
   <div class="aviso-visualizacao">
-    Modo visualização. Apenas membros do P3 podem incluir, editar ou excluir eventos.
+    Modo visualizaÃ§Ã£o. Apenas membros do P3 podem incluir, editar ou excluir eventos.
   </div>
 
   <section class="painel">
     <div class="campo">
       <label for="pesquisa">Pesquisar evento</label>
-      <input id="pesquisa" type="search" placeholder="Ex.: operação, futebol, reunião...">
+      <input id="pesquisa" type="search" placeholder="Ex.: operaÃ§Ã£o, futebol, reuniÃ£o...">
     </div>
     <div class="campo">
       <label for="filtroTipo">Tipo de evento</label>
       <select id="filtroTipo">
         <option value="todos">Todos os tipos</option>
         <option value="POLOST">01. POLOST</option>
-        <option value="Operações">02. Operações</option>
-        <option value="Manifestação Social">03. Manifestação Social</option>
+        <option value="OperaÃ§Ãµes">02. OperaÃ§Ãµes</option>
+        <option value="ManifestaÃ§Ã£o Social">03. ManifestaÃ§Ã£o Social</option>
         <option value="Jogos de Futebol">04. Jogos de Futebol</option>
         <option value="Passeio a Cavalo">05. Passeio a Cavalo</option>
         <option value="Carnaval">06. Carnaval</option>
         <option value="Cavalgadas">07. Cavalgadas</option>
         <option value="Rodeios">08. Rodeios</option>
-        <option value="Dragões, Representações e Outros">09. Dragões, Representações e Outros</option>
-        <option value="Clarim, Formaturas e Reuniões">10. Clarim, Formaturas e Reuniões</option>
+        <option value="DragÃµes, RepresentaÃ§Ãµes e Outros">09. DragÃµes, RepresentaÃ§Ãµes e Outros</option>
+        <option value="Clarim, Formaturas e ReuniÃµes">10. Clarim, Formaturas e ReuniÃµes</option>
         <option value="Shows e Eventos">11. Shows e Eventos</option>
-        <option value="Empréstimo de VTR ou CAM BOX">12. Empréstimo de VTR ou CAM BOX</option>
+        <option value="EmprÃ©stimo de VTR ou CAM BOX">12. EmprÃ©stimo de VTR ou CAM BOX</option>
         <option value="Transporte de Equinos e Provas">13. Transporte de Equinos e Provas</option>
         <option value="Viagens e Deslocamentos Operacionais">14. Viagens e Deslocamentos Operacionais</option>
       </select>
     </div>
     <div class="campo">
-      <label for="filtroEsquadrao">Esquadrão</label>
+      <label for="filtroEsquadrao">EsquadrÃ£o</label>
       <select id="filtroEsquadrao">
-        <option value="todos">Todos os esquadrões</option>
-        <option value="1">1º Esquadrão</option>
-        <option value="2">2º Esquadrão</option>
+        <option value="todos">Todos os esquadrÃµes</option>
+        <option value="1">1Âº EsquadrÃ£o</option>
+        <option value="2">2Âº EsquadrÃ£o</option>
       </select>
     </div>
-    <button onclick="imprimirAgenda()">Imprimir agenda</button>
-    <button class="botao-secundario" onclick="compartilharAgenda()">Compartilhar</button>
+    <div class="campo">
+      <label for="modoVisualizacao">VisualizaÃ§Ã£o</label>
+      <select id="modoVisualizacao">
+        <option value="dia">Dia</option>
+        <option value="semana">Semana</option>
+        <option value="mes" selected>MÃªs</option>
+        <option value="ano">Ano</option>
+      </select>
+    </div>
+    <div class="campo campo-data-referencia">
+      <label for="dataReferencia">Data de referÃªncia</label>
+      <input id="dataReferencia" type="date" min="2026-01-01" max="2026-12-31" value="2026-08-09">
+    </div>
+    <button onclick="exportarPDF()">Gerar PDF</button>
+    <button class="botao-whatsapp" onclick="compartilharWhatsApp()">WhatsApp</button>
   </section>
 
   <div class="resumo">
     <div class="indicador">Ano: <strong>2026</strong></div>
-    <div class="indicador">Mês: <strong id="nomeMesResumo">Agosto</strong></div>
+    <div class="indicador">MÃªs: <strong id="nomeMesResumo">Agosto</strong></div>
     <div class="indicador">Eventos exibidos: <strong id="totalEventos">0</strong></div>
   </div>
 
@@ -106,7 +119,7 @@
   <section class="grade-eventos" id="listaEventos" aria-live="polite"></section>
 </main>
 
-<footer>Programação Operacional 4ºRPMon — Agenda de eventos de 2026</footer>
+<footer>ProgramaÃ§Ã£o Operacional 4ÂºRPMon â€” Agenda de eventos de 2026</footer>
 
 <script type="module" src="app.js"></script>
 </body>
