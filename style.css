@@ -14,7 +14,7 @@
   --raio: 12px;
 }
 
-/* ===== Agenda 2.0: perÃ­odos, dados estruturados e administraÃ§Ã£o ===== */
+/* ===== Agenda 2.0: períodos, dados estruturados e administração ===== */
 .botao-whatsapp { background: #16794b; }
 .campo-data-referencia { min-width: 170px; }
 body[data-visualizacao="mes"] .campo-data-referencia,
@@ -132,7 +132,7 @@ button:disabled {
 }
 
 /* =========================
-   CABEÃ‡ALHO
+   CABEÇALHO
 ========================= */
 
 header {
@@ -205,7 +205,7 @@ h1 {
   overflow-wrap: anywhere;
 }
 
-/* Ãrea de acesso â€” centralizada em ambas as pÃ¡ginas */
+/* Área de acesso — centralizada em ambas as páginas */
 .area-acesso {
   display: flex;
   flex-wrap: wrap;
@@ -244,7 +244,7 @@ h1 {
 }
 
 /* =========================
-   BOTÃ•ES DO CABEÃ‡ALHO
+   BOTÕES DO CABEÇALHO
 ========================= */
 
 .botao-acesso {
@@ -294,7 +294,7 @@ h1 {
 }
 
 /* =========================
-   CONTEÃšDO PRINCIPAL
+   CONTEÚDO PRINCIPAL
 ========================= */
 
 main {
@@ -303,7 +303,7 @@ main {
 }
 
 /* =========================================================
-   PAINEL DE FILTROS â€” DESKTOP (tudo em uma linha)
+   PAINEL DE FILTROS — DESKTOP (tudo em uma linha)
 ========================================================= */
 
 .painel {
@@ -445,7 +445,7 @@ textarea:focus {
 }
 
 /* =========================
-   RESUMO E TÃTULOS
+   RESUMO E TÍTULOS
 ========================= */
 
 .resumo {
@@ -626,7 +626,7 @@ textarea:focus {
 .tipo-outros .evento-tipo { color: #64748b; background: #eef1f4; }
 
 /* =========================
-   CORES POR ESQUADRÃƒO
+   CORES POR ESQUADRÃO
 ========================= */
 
 .evento-card.esquadrao-1 {
@@ -650,7 +650,7 @@ textarea:focus {
 }
 
 /* =========================
-   FORMULÃRIO
+   FORMULÁRIO
 ========================= */
 
 .formulario {
@@ -687,7 +687,7 @@ textarea:focus {
 }
 
 /* =========================
-   AVISOS E RODAPÃ‰
+   AVISOS E RODAPÉ
 ========================= */
 
 .aviso-visualizacao {
@@ -780,7 +780,7 @@ footer {
 }
 
 /* =========================================================
-   CELULARES (atÃ© 700px)
+   CELULARES (até 700px)
 ========================================================= */
 
 @media (max-width: 700px) {
@@ -892,7 +892,7 @@ footer {
 }
 
 /* =========================================================
-   CELULARES MUITO PEQUENOS (atÃ© 380px)
+   CELULARES MUITO PEQUENOS (até 380px)
 ========================================================= */
 
 @media (max-width: 380px) {
@@ -920,7 +920,7 @@ footer {
 }
 
 /* =========================
-   IMPRESSÃƒO
+   IMPRESSÃO
 ========================= */
 
 @media print {
