@@ -18,6 +18,7 @@
 .botao-whatsapp { background: #16794b; }
 .campo-data-referencia { min-width: 170px; }
 body[data-visualizacao="mes"] .campo-data-referencia,
+body[data-visualizacao="proximos"] .campo-data-referencia,
 body[data-visualizacao="ano"] .campo-data-referencia { display: none; }
 
 .grupo-dia { margin: 0 0 24px; }
@@ -920,6 +921,339 @@ footer {
 }
 
 /* =========================
+   AGENDA 3.0 — NAVEGAÇÃO E DENSIDADE
+========================= */
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  background:
+    radial-gradient(circle at top left, rgba(8, 116, 67, 0.06), transparent 28rem),
+    var(--fundo);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.ano-cabecalho {
+  min-width: 145px;
+}
+
+.atalhos-periodo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  overflow-x: auto;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+  scrollbar-width: thin;
+}
+
+.atalhos-titulo {
+  flex: 0 0 auto;
+  padding: 0 5px;
+  color: var(--cinza);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.botao-atalho {
+  min-height: 38px;
+  padding: 7px 13px;
+  flex: 0 0 auto;
+  color: #284057;
+  background: #edf3f7;
+  border: 1px solid #d5e0e8;
+  border-radius: 999px;
+  font-size: 0.82rem;
+}
+
+.botao-atalho:hover,
+.botao-atalho.ativo {
+  color: #fff;
+  background: var(--verde);
+  border-color: var(--verde);
+}
+
+.botao-passados {
+  margin-left: auto;
+  color: #795714;
+  background: #fff8e5;
+  border-color: #ead49b;
+}
+
+.botao-limpar {
+  color: #31475d;
+  background: #e8eef3;
+  border: 1px solid #cfd9e2;
+}
+
+.botao-limpar:hover {
+  color: #fff;
+  background: #52657a;
+}
+
+.status-agenda {
+  min-height: 22px;
+  margin: -8px 0 10px;
+  color: #627286;
+  font-size: 0.82rem;
+}
+
+.titulo-mes {
+  scroll-margin-top: 250px;
+}
+
+.grupo-dia {
+  margin-bottom: 18px;
+}
+
+.grupo-passado {
+  opacity: 0.82;
+}
+
+.grupo-passado:hover {
+  opacity: 1;
+}
+
+.grade-dia {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.evento-card {
+  min-height: 100%;
+  padding: 16px;
+  border-radius: 14px;
+  box-shadow: 0 7px 20px rgba(15, 23, 42, 0.08);
+}
+
+.evento-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.14);
+}
+
+.evento-hoje {
+  background: linear-gradient(145deg, #ffffff, #f1fbf6);
+  box-shadow: 0 0 0 2px rgba(8, 116, 67, 0.38), 0 12px 28px rgba(8, 116, 67, 0.14);
+}
+
+.selo-hoje {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 9px;
+  padding: 3px 8px;
+  color: #fff;
+  background: var(--verde);
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.evento-nome {
+  margin-top: 3px;
+  font-size: 1.04rem;
+  line-height: 1.35;
+}
+
+.evento-local {
+  margin-top: 5px;
+  line-height: 1.45;
+}
+
+.estado-agenda,
+.carregamento-agenda {
+  grid-column: 1 / -1;
+  width: 100%;
+  padding: 26px;
+  background: #fff;
+  border: 1px solid var(--borda);
+  border-radius: 14px;
+  box-shadow: var(--sombra);
+}
+
+.estado-agenda {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.estado-agenda strong {
+  color: #23384e;
+  font-size: 1.05rem;
+}
+
+.estado-agenda span {
+  max-width: 560px;
+  color: var(--cinza);
+}
+
+.estado-agenda button {
+  margin-top: 5px;
+}
+
+.estado-erro {
+  border-color: #efb4ad;
+  background: #fff8f7;
+}
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: #e7edf1;
+  border-radius: 10px;
+}
+
+.skeleton::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.72), transparent);
+  animation: carregar 1.2s infinite;
+}
+
+.skeleton-titulo {
+  width: min(360px, 80%);
+  height: 24px;
+  margin-bottom: 16px;
+}
+
+.skeleton-card {
+  height: 170px;
+}
+
+@keyframes carregar {
+  to { transform: translateX(100%); }
+}
+
+@media (min-width: 1051px) {
+  .painel {
+    position: sticky;
+    top: 12px;
+    z-index: 20;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    overflow: visible;
+    border-color: rgba(203, 213, 225, 0.9);
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+  }
+
+  .painel > .campo:first-child {
+    grid-column: span 2;
+  }
+
+  .painel > button {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 1050px) and (min-width: 701px) {
+  .grade-dia,
+  .skeleton-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  main {
+    padding-top: 14px;
+  }
+
+  .aviso-visualizacao {
+    margin-bottom: 12px;
+    padding: 9px 12px;
+    font-size: 0.8rem;
+  }
+
+  .atalhos-periodo {
+    position: sticky;
+    top: 0;
+    z-index: 25;
+    margin-right: -4px;
+    margin-left: -4px;
+    padding: 9px 8px;
+    border-radius: 0 0 12px 12px;
+    backdrop-filter: blur(12px);
+  }
+
+  .atalhos-titulo {
+    display: none;
+  }
+
+  .botao-atalho {
+    min-height: 42px;
+    font-size: 0.8rem;
+  }
+
+  .botao-passados {
+    margin-left: 0;
+  }
+
+  .painel {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .grade-dia,
+  .skeleton-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cabecalho-dia {
+    padding: 10px 12px;
+  }
+
+  .evento-card {
+    padding: 15px;
+  }
+
+  .evento-nome {
+    font-size: 1.02rem;
+  }
+
+  .resumo {
+    gap: 7px;
+    margin-bottom: 12px;
+  }
+
+  .indicador {
+    padding: 7px 11px;
+  }
+
+  .status-agenda {
+    margin-top: 0;
+  }
+
+  .titulo-mes {
+    scroll-margin-top: 70px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* =========================
    IMPRESSÃO
 ========================= */
 
@@ -938,11 +1272,14 @@ footer {
   header .area-acesso,
   .aviso-visualizacao,
   .painel,
+  .atalhos-periodo,
+  .status-agenda,
   .formulario,
   .resumo,
   footer,
   .acoes-card,
   .sobreposicao,
+  .selo-hoje,
   button,
   a {
     display: none !important;
