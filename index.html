@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Programação Operacional 4ºRPMon</title>
-<meta name="description" content="Agenda de eventos e atividades do 4ºRPMon — 2026.">
+<meta id="metaDescricao" name="description" content="Agenda de eventos e atividades do 4ºRPMon — 2026.">
 <meta property="og:title" content="Programação Operacional 4ºRPMon">
-<meta property="og:description" content="Agenda de eventos e atividades do 4ºRPMon — 2026.">
+<meta id="ogDescricao" property="og:description" content="Agenda de eventos e atividades do 4ºRPMon — 2026.">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://www.gstatic.com">
 <link rel="stylesheet" href="style.css">
@@ -25,7 +25,7 @@
       <div class="brasao"><img src="image.png" alt="Brasão do 4º RPMon"></div>
       <div>
         <h1>Programação Operacional 4ºRPMon</h1>
-        <p class="subtitulo">Agenda de eventos e atividades — 2026</p>
+        <p class="subtitulo" id="subtituloAgenda">Agenda de eventos e atividades — 2026</p>
       </div>
     </div>
 
@@ -49,6 +49,12 @@
           <option value="11">Dezembro</option>
         </select>
       </div>
+      <div class="mes-cabecalho ano-cabecalho">
+        <label for="anoSelecionado">Ano de referência</label>
+        <select id="anoSelecionado" aria-label="Ano de referência">
+          <option value="2026" selected>2026</option>
+        </select>
+      </div>
     </div>
   </div>
 </header>
@@ -57,6 +63,14 @@
   <div class="aviso-visualizacao">
     Modo visualização. Apenas membros do P3 podem incluir, editar ou excluir eventos.
   </div>
+
+  <nav class="atalhos-periodo" aria-label="Atalhos de período">
+    <span class="atalhos-titulo">Acesso rápido</span>
+    <button class="botao-atalho" id="atalhoHoje" type="button" onclick="irParaHoje()" aria-pressed="false">Hoje</button>
+    <button class="botao-atalho" id="atalhoSemana" type="button" onclick="irParaSemana()" aria-pressed="false">Esta semana</button>
+    <button class="botao-atalho" id="atalhoProximos" type="button" onclick="irParaProximos()" aria-pressed="false">Próximos 30 dias</button>
+    <button class="botao-atalho botao-passados" id="botaoPassados" type="button" onclick="alternarEventosPassados()" aria-pressed="false" hidden>Mostrar eventos passados</button>
+  </nav>
 
   <section class="painel">
     <div class="campo">
@@ -97,29 +111,33 @@
         <option value="dia">Dia</option>
         <option value="semana">Semana</option>
         <option value="mes" selected>Mês</option>
+        <option value="proximos">Próximos 30 dias</option>
         <option value="ano">Ano</option>
       </select>
     </div>
     <div class="campo campo-data-referencia">
       <label for="dataReferencia">Data de referência</label>
-      <input id="dataReferencia" type="date" min="2026-01-01" max="2026-12-31" value="2026-08-09">
+      <input id="dataReferencia" type="date">
     </div>
     <button onclick="exportarPDF()">Gerar PDF</button>
     <button class="botao-whatsapp" onclick="compartilharWhatsApp()">WhatsApp</button>
+    <button class="botao-limpar" type="button" onclick="limparFiltros()">Limpar filtros</button>
   </section>
 
   <div class="resumo">
-    <div class="indicador">Ano: <strong>2026</strong></div>
+    <div class="indicador">Ano: <strong id="anoResumo">2026</strong></div>
     <div class="indicador">Mês: <strong id="nomeMesResumo">Agosto</strong></div>
     <div class="indicador">Eventos exibidos: <strong id="totalEventos">0</strong></div>
   </div>
+
+  <div class="status-agenda" id="statusAgenda" role="status" aria-live="polite"></div>
 
   <h2 class="titulo-mes" id="tituloMes">Agosto de 2026</h2>
 
   <section class="grade-eventos" id="listaEventos" aria-live="polite"></section>
 </main>
 
-<footer>Programação Operacional 4ºRPMon — Agenda de eventos de 2026</footer>
+<footer id="rodapeAgenda">Programação Operacional 4ºRPMon — Agenda de eventos de 2026</footer>
 
 <script type="module" src="app.js"></script>
 </body>

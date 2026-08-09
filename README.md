@@ -8,16 +8,22 @@ O sistema organiza a agenda operacional em uma interface única. Usuários podem
 
 ## Funcionalidades
 
-- Consulta da programação por mês
+- Consulta da programação por dia, semana, mês, próximos 30 dias ou ano
+- Atalhos para hoje, esta semana e próximos eventos
+- Seleção dinâmica do ano de referência
 - Pesquisa textual de eventos
 - Filtros por tipo de evento e esquadrão
+- Recolhimento dos eventos passados no mês atual
+- Limpeza rápida dos filtros
 - Indicadores com resumo dos resultados
 - Atualização de dados em tempo real
 - Área administrativa com autenticação
 - Cadastro, edição e exclusão de eventos
 - Suporte a eventos de um ou vários dias
 - Impressão e compartilhamento da agenda
-- Interface responsiva e elementos de acessibilidade
+- Interface responsiva para celular e computador
+- Estados de carregamento, erro e ausência de resultados
+- Elementos de acessibilidade e suporte a movimento reduzido
 
 ## Tecnologias
 

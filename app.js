@@ -4,7 +4,9 @@ import {
   auth, onAuthStateChanged, signInWithEmailAndPassword, signOut
 } from "./firebase-config.js";
 
-const ano = 2026;
+const hojeLocal = new Date();
+const anoAtual = hojeLocal.getFullYear();
+let ano = anoAtual;
 const nomesMeses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const classesPorTipo = {
   "POLOST":"tipo-01", "Operações":"tipo-02", "Manifestação Social":"tipo-03",
@@ -23,9 +25,11 @@ let modoP3 = false;
 let primeiraCargaConcluida = false;
 let debounceId = null;
 let ultimoElementoComFoco = null;
+let mostrarPassados = false;
 
 const $ = id => document.getElementById(id);
 const mesSelecionado = $("mesSelecionado");
+const anoSelecionado = $("anoSelecionado");
 const pesquisa = $("pesquisa");
 const filtroTipo = $("filtroTipo");
 const filtroEsquadrao = $("filtroEsquadrao");
@@ -35,6 +39,11 @@ const tituloMes = $("tituloMes");
 const nomeMesResumo = $("nomeMesResumo");
 const totalEventos = $("totalEventos");
 const listaEventos = $("listaEventos");
+const anoResumo = $("anoResumo");
+const statusAgenda = $("statusAgenda");
+const botaoPassados = $("botaoPassados");
+const subtituloAgenda = $("subtituloAgenda");
+const rodapeAgenda = $("rodapeAgenda");
 const mensagem = $("mensagem");
 const areaAdministrativa = $("areaAdministrativa");
 const areaImportacao = $("areaImportacao");
@@ -91,11 +100,97 @@ function somarDias(dataISO, dias){
   const data=new Date(`${dataISO}T12:00:00`); data.setDate(data.getDate()+dias); return dataLocalISO(data);
 }
 
+function obterAnosDisponiveis(){
+  const anos=new Set([anoAtual-1,anoAtual,anoAtual+1,anoAtual+2,ano]);
+  eventos.forEach(e=>{
+    const inicio=obterDataInicial(e), fim=obterDataFinal(e);
+    if(/^\d{4}-/.test(inicio)) anos.add(Number(inicio.slice(0,4)));
+    if(/^\d{4}-/.test(fim)) anos.add(Number(fim.slice(0,4)));
+  });
+  return [...anos].filter(Number.isFinite).sort((a,b)=>a-b);
+}
+
+function sincronizarOpcoesAno(){
+  if(!anoSelecionado) return;
+  const selecionado=ano;
+  anoSelecionado.innerHTML=obterAnosDisponiveis().map(valor=>`<option value="${valor}">${valor}</option>`).join("");
+  anoSelecionado.value=String(selecionado);
+}
+
+function atualizarConfiguracaoAno({preservarData=false}={}){
+  const inicio=`${ano}-01-01`, fim=`${ano}-12-31`;
+  [dataReferencia,$("dataInicial"),$("dataFinal")].forEach(campo=>{
+    if(!campo) return;
+    campo.min=inicio; campo.max=fim;
+  });
+  if(dataReferencia && (!preservarData || !dataReferencia.value.startsWith(`${ano}-`))){
+    const mes=Number(mesSelecionado?.value ?? 0)+1;
+    dataReferencia.value=ano===anoAtual?dataLocalISO():`${ano}-${String(mes).padStart(2,"0")}-01`;
+  }
+  if(anoResumo) anoResumo.textContent=String(ano);
+  if(subtituloAgenda){
+    subtituloAgenda.textContent=areaAdministrativa?`Painel de gerenciamento — P3 · ${ano}`:`Agenda de eventos e atividades — ${ano}`;
+  }
+  if(rodapeAgenda){
+    rodapeAgenda.textContent=areaAdministrativa?`Programação Operacional 4ºRPMon — Painel do P3 · ${ano}`:`Programação Operacional 4ºRPMon — Agenda de eventos de ${ano}`;
+  }
+  const meta=$("metaDescricao");
+  if(meta) meta.content=`Agenda de eventos e atividades do 4ºRPMon — ${ano}.`;
+  const ogDescricao=$("ogDescricao");
+  if(ogDescricao) ogDescricao.content=`Agenda de eventos e atividades do 4ºRPMon — ${ano}.`;
+}
+
+function selecionarAno(valor,{preservarData=false}={}){
+  ano=Number(valor)||anoAtual;
+  sincronizarOpcoesAno();
+  atualizarConfiguracaoAno({preservarData});
+}
+
+function atualizarEstadoAtalhos(){
+  const modo=modoVisualizacao?.value || "mes", hoje=dataLocalISO();
+  const estados={atalhoHoje:modo==="dia"&&dataReferencia?.value===hoje,atalhoSemana:modo==="semana",atalhoProximos:modo==="proximos"};
+  Object.entries(estados).forEach(([id,ativo])=>{
+    const botao=$(id); if(!botao) return;
+    botao.classList.toggle("ativo",ativo); botao.setAttribute("aria-pressed",String(ativo));
+  });
+}
+
+function irParaResultado(){
+  tituloMes?.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function aplicarAtalho(modo){
+  const hoje=dataLocalISO(), anoHoje=Number(hoje.slice(0,4));
+  selecionarAno(anoHoje,{preservarData:true});
+  if(mesSelecionado) mesSelecionado.value=String(Number(hoje.slice(5,7))-1);
+  if(dataReferencia) dataReferencia.value=hoje;
+  if(modoVisualizacao) modoVisualizacao.value=modo;
+  document.body.dataset.visualizacao=modo;
+  mostrarPassados=false; renderizar(); irParaResultado();
+}
+
+window.irParaHoje=function(){ aplicarAtalho("dia"); };
+window.irParaSemana=function(){ aplicarAtalho("semana"); };
+window.irParaProximos=function(){ aplicarAtalho("proximos"); };
+window.alternarEventosPassados=function(){ mostrarPassados=!mostrarPassados; renderizar(); };
+window.limparFiltros=function(){
+  if(pesquisa) pesquisa.value="";
+  if(filtroTipo) filtroTipo.value="todos";
+  if(filtroEsquadrao) filtroEsquadrao.value="todos";
+  if(statusAgenda) statusAgenda.textContent="Filtros removidos.";
+  renderizar();
+};
+window.recarregarAgenda=function(){ window.location.reload(); };
+
 function intervaloVisualizacao(){
   const modo=modoVisualizacao?.value || "mes";
   const mes=Number(mesSelecionado?.value || 0);
   const referencia=dataReferencia?.value || `${ano}-${String(mes+1).padStart(2,"0")}-01`;
   if(modo === "ano") return {inicio:`${ano}-01-01`,fim:`${ano}-12-31`,titulo:`Agenda anual de ${ano}`};
+  if(modo === "proximos"){
+    const hoje=dataLocalISO(), fim=somarDias(hoje,29);
+    return {inicio:hoje,fim,titulo:`Próximos 30 dias · ${formatarData(hoje)} a ${formatarData(fim)}`};
+  }
   if(modo === "dia") return {inicio:referencia,fim:referencia,titulo:formatarData(referencia)};
   if(modo === "semana"){
     const d=new Date(`${referencia}T12:00:00`), dia=d.getDay() || 7;
@@ -108,11 +203,21 @@ function intervaloVisualizacao(){
 }
 
 function iniciarEscutaEventos(){
-  if(listaEventos && !primeiraCargaConcluida) listaEventos.innerHTML='<div class="sem-eventos">Carregando eventos...</div>';
+  renderizarCarregamento();
   onSnapshot(query(collection(db,"eventos")), snapshot => {
     eventos=snapshot.docs.map(documento => ({id:documento.id,...documento.data()}));
-    primeiraCargaConcluida=true; renderizar(); renderizarAuditoria();
-  }, () => { if(listaEventos) listaEventos.innerHTML='<div class="sem-eventos">Não foi possível carregar os eventos.</div>'; });
+    primeiraCargaConcluida=true; sincronizarOpcoesAno(); renderizar(); renderizarAuditoria();
+  }, () => {
+    primeiraCargaConcluida=true;
+    if(statusAgenda) statusAgenda.textContent="Falha ao carregar a programação.";
+    if(listaEventos) listaEventos.innerHTML='<div class="estado-agenda estado-erro"><strong>Não foi possível carregar os eventos</strong><span>Verifique sua conexão e tente novamente.</span><button type="button" onclick="recarregarAgenda()">Tentar novamente</button></div>';
+  });
+}
+
+function renderizarCarregamento(){
+  if(statusAgenda) statusAgenda.textContent="Carregando programação...";
+  if(!listaEventos) return;
+  listaEventos.innerHTML='<div class="carregamento-agenda" aria-hidden="true"><div class="skeleton skeleton-titulo"></div><div class="skeleton-grid"><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div></div></div>';
 }
 
 window.abrirCaixaSenha=function(){
@@ -155,9 +260,10 @@ function metadado(label,valor){ return valor ? `<span class="meta-item"><b>${esc
 
 function renderizar(){
   if(!listaEventos || !mesSelecionado || !pesquisa || !filtroTipo || !totalEventos) return;
+  if(!primeiraCargaConcluida){ renderizarCarregamento(); return; }
   const {inicio,fim,titulo}=intervaloVisualizacao();
   const termo=normalizar(pesquisa.value), tipo=filtroTipo.value, esq=filtroEsquadrao?.value || "todos";
-  const hoje=dataLocalISO();
+  const hoje=dataLocalISO(), modo=modoVisualizacao?.value || "mes";
   const filtrados=eventos.filter(e=>{
     if(e.excluido || !obterDataInicial(e) || !eventoNoIntervalo(e,inicio,fim)) return false;
     const haystack=normalizar(`${e.nome} ${e.local} ${e.municipio} ${e.observacoes} ${e.ordemServico} ${e.efetivo} ${e.tipo}`);
@@ -165,24 +271,47 @@ function renderizar(){
   }).sort((a,b)=>`${obterDataInicial(a)}${obterHoraInicial(a)}`.localeCompare(`${obterDataInicial(b)}${obterHoraInicial(b)}`));
   eventosFiltradosAtuais=filtrados; totalEventos.textContent=filtrados.length;
   if(tituloMes) tituloMes.textContent=titulo;
-  if(nomeMesResumo) nomeMesResumo.textContent=(modoVisualizacao?.value || "mes")==="ano"?"Ano completo":titulo;
+  if(nomeMesResumo) nomeMesResumo.textContent=modo==="ano"?"Ano completo":titulo;
+  if(anoResumo) anoResumo.textContent=modo==="proximos"&&inicio.slice(0,4)!==fim.slice(0,4)?`${inicio.slice(0,4)}–${fim.slice(0,4)}`:String(ano);
+  atualizarEstadoAtalhos();
   listaEventos.innerHTML="";
-  if(!filtrados.length){ listaEventos.innerHTML='<div class="sem-eventos">Nenhum evento encontrado neste período.</div>'; return; }
+  const temFiltros=!!termo || tipo!=="todos" || esq!=="todos";
+  if(!filtrados.length){
+    if(statusAgenda) statusAgenda.textContent="Nenhum evento encontrado com os critérios selecionados.";
+    listaEventos.innerHTML=`<div class="estado-agenda estado-vazio"><strong>Nenhum evento encontrado</strong><span>${temFiltros?"Tente remover um dos filtros ou pesquisar outro termo.":"Não há eventos cadastrados para este período."}</span>${temFiltros?'<button type="button" onclick="limparFiltros()">Limpar filtros</button>':""}</div>`;
+    if(botaoPassados) botaoPassados.hidden=true;
+    return;
+  }
   const grupos=new Map();
   filtrados.forEach(e=>{ const data=obterDataInicial(e); if(!grupos.has(data)) grupos.set(data,[]); grupos.get(data).push(e); });
+  const mesAtual=inicio.slice(0,7)===hoje.slice(0,7);
+  const diasPassados=[...grupos.keys()].filter(data=>data<hoje);
+  const deveRecolher=modo==="mes"&&mesAtual&&diasPassados.length>0;
+  const eventosPassados=diasPassados.reduce((total,data)=>total+(grupos.get(data)?.length||0),0);
+  if(botaoPassados){
+    botaoPassados.hidden=!deveRecolher;
+    botaoPassados.textContent=mostrarPassados?"Recolher eventos passados":`Mostrar ${eventosPassados} ${eventosPassados===1?"evento passado":"eventos passados"}`;
+    botaoPassados.setAttribute("aria-pressed",String(mostrarPassados));
+  }
+  if(statusAgenda){
+    const ocultos=deveRecolher&&!mostrarPassados?eventosPassados:0;
+    statusAgenda.textContent=`${filtrados.length} ${filtrados.length===1?"evento encontrado":"eventos encontrados"}${ocultos?` · ${ocultos} recolhidos`:""}.`;
+  }
   grupos.forEach((itens,data)=>{
+    if(deveRecolher&&!mostrarPassados&&data<hoje) return;
     const grupo=document.createElement("section");
-    grupo.className=`grupo-dia ${data===hoje?"grupo-hoje":data>hoje?"grupo-futuro":""}`;
+    grupo.className=`grupo-dia ${data===hoje?"grupo-hoje":data>hoje?"grupo-futuro":"grupo-passado"}`;
     const tituloDia=document.createElement("div");
     tituloDia.className="cabecalho-dia";
-    tituloDia.innerHTML=`<div><span>${data===hoje?"Hoje":"Agenda do dia"}</span><h3>${escaparHTML(formatarData(data))}</h3></div><strong>${itens.length} ${itens.length===1?"evento":"eventos"}</strong>`;
+    tituloDia.innerHTML=`<div><span>${data===hoje?"Hoje":data<hoje?"Evento passado":"Agenda do dia"}</span><h3>${escaparHTML(formatarData(data))}</h3></div><strong>${itens.length} ${itens.length===1?"evento":"eventos"}</strong>`;
     grupo.appendChild(tituloDia);
     const grade=document.createElement("div"); grade.className="grade-dia";
     itens.forEach(e=>{
       const card=document.createElement("article");
-      card.className=`evento-card ${obterClasseTipo(e.tipo)} ${obterClasseEsquadrao(obterEsquadrao(e))}`;
+      card.className=`evento-card ${obterClasseTipo(e.tipo)} ${obterClasseEsquadrao(obterEsquadrao(e))} ${data===hoje?"evento-hoje":""}`;
+      if(data===hoje) card.setAttribute("aria-label",`Evento de hoje: ${e.nome||"Evento"}`);
       const acoes=modoP3&&areaAdministrativa?`<div class="acoes-card"><button class="botao-editar" onclick="iniciarEdicao('${e.id}')">Editar</button><button class="botao-excluir" onclick="excluirEvento('${e.id}')">Excluir</button></div>`:"";
-      card.innerHTML=`<div class="evento-topo"><span class="evento-data">${escaparHTML(formatarPeriodoHorario(e))}</span><span class="evento-tipo">${escaparHTML(e.tipo||"Outros")}</span></div><span class="evento-esquadrao">${escaparHTML(obterTextoEsquadrao(obterEsquadrao(e)))}</span><div class="evento-nome">${escaparHTML(e.nome)}</div><div class="evento-local">${escaparHTML(e.local||"")}</div><div class="evento-metadados">${metadado("Município",e.municipio)}${metadado("OSv/NSv",e.ordemServico)}${metadado("Efetivo",e.efetivo)}${metadado("Observações",e.observacoes)}</div>${acoes}`;
+      card.innerHTML=`${data===hoje?'<span class="selo-hoje">Hoje</span>':""}<div class="evento-topo"><span class="evento-data">${escaparHTML(formatarPeriodoHorario(e))}</span><span class="evento-tipo">${escaparHTML(e.tipo||"Outros")}</span></div><span class="evento-esquadrao">${escaparHTML(obterTextoEsquadrao(obterEsquadrao(e)))}</span><div class="evento-nome">${escaparHTML(e.nome)}</div><div class="evento-local">${escaparHTML(e.local||"")}</div><div class="evento-metadados">${metadado("Município",e.municipio)}${metadado("OSv/NSv",e.ordemServico)}${metadado("Efetivo",e.efetivo)}${metadado("Observações",e.observacoes)}</div>${acoes}`;
       grade.appendChild(card);
     });
     grupo.appendChild(grade); listaEventos.appendChild(grupo);
@@ -367,13 +496,23 @@ window.imprimirAgenda=function(){ window.print(); };
 window.compartilharAgenda=window.compartilharWhatsApp;
 
 mesSelecionado?.addEventListener("change",()=>{
-  if(dataReferencia) dataReferencia.value=`${ano}-${String(Number(mesSelecionado.value)+1).padStart(2,"0")}-01`; renderizar();
+  if(dataReferencia) dataReferencia.value=`${ano}-${String(Number(mesSelecionado.value)+1).padStart(2,"0")}-01`;
+  mostrarPassados=false; renderizar();
 });
-modoVisualizacao?.addEventListener("change",()=>{ document.body.dataset.visualizacao=modoVisualizacao.value; renderizar(); });
+anoSelecionado?.addEventListener("change",()=>{
+  selecionarAno(anoSelecionado.value);
+  mostrarPassados=false; renderizar();
+});
+modoVisualizacao?.addEventListener("change",()=>{
+  document.body.dataset.visualizacao=modoVisualizacao.value;
+  mostrarPassados=false; renderizar();
+});
 dataReferencia?.addEventListener("change",renderizar);
 filtroTipo?.addEventListener("change",renderizar); filtroEsquadrao?.addEventListener("change",renderizar);
 pesquisa?.addEventListener("input",()=>{ clearTimeout(debounceId); debounceId=setTimeout(renderizar,180); });
 
-if(dataReferencia && !dataReferencia.value) dataReferencia.value=dataLocalISO().startsWith(`${ano}-`)?dataLocalISO():`${ano}-08-01`;
+if(mesSelecionado) mesSelecionado.value=String(hojeLocal.getMonth());
+selecionarAno(anoAtual);
+if(dataReferencia) dataReferencia.value=dataLocalISO();
 if(modoVisualizacao) document.body.dataset.visualizacao=modoVisualizacao.value;
 iniciarEscutaEventos();
