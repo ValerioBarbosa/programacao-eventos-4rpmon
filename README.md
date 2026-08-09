@@ -1,0 +1,57 @@
+# Programação Operacional 4º RPMon
+
+Aplicação web para centralizar a consulta e a administração da programação de eventos e atividades operacionais do 4º RPMon.
+
+## Visão geral
+
+O sistema organiza a agenda operacional em uma interface única. Usuários podem consultar, pesquisar e filtrar eventos, enquanto membros autorizados utilizam uma área administrativa para manter as informações atualizadas.
+
+## Funcionalidades
+
+- Consulta da programação por mês
+- Pesquisa textual de eventos
+- Filtros por tipo de evento e esquadrão
+- Indicadores com resumo dos resultados
+- Atualização de dados em tempo real
+- Área administrativa com autenticação
+- Cadastro, edição e exclusão de eventos
+- Suporte a eventos de um ou vários dias
+- Impressão e compartilhamento da agenda
+- Interface responsiva e elementos de acessibilidade
+
+## Tecnologias
+
+- HTML5
+- CSS3
+- JavaScript com módulos ES
+- Firebase Authentication
+- Cloud Firestore
+
+## Arquitetura e funcionamento
+
+A aplicação separa a visualização pública da área administrativa. Os eventos são armazenados no Cloud Firestore e atualizados em tempo real por meio de listeners. O Firebase Authentication controla o acesso às operações administrativas.
+
+O código inclui compatibilidade com registros antigos, tratamento de conteúdo antes da exibição e estados de carregamento para melhorar a experiência de uso.
+
+## Estrutura principal
+
+- `index.html`: visualização pública da agenda
+- `admin.html`: interface administrativa
+- `app.js`: regras da aplicação e integração com o Firebase
+- `firebase-config.js`: configuração dos serviços Firebase
+- `style.css`: estilos e comportamento responsivo
+
+## Como executar
+
+1. Clone este repositório.
+2. Crie ou selecione um projeto no Firebase.
+3. Configure o Firebase Authentication e o Cloud Firestore.
+4. Informe a configuração do projeto em `firebase-config.js`.
+5. Sirva os arquivos com um servidor HTTP local.
+6. Abra a URL fornecida pelo servidor.
+
+> Nunca publique senhas, chaves privadas ou credenciais administrativas no repositório. A configuração pública de cliente do Firebase deve ser protegida por regras adequadas de autenticação e acesso no Firestore.
+
+## Autor
+
+Desenvolvido por [Valério Barbosa](https://github.com/ValerioBarbosa).
