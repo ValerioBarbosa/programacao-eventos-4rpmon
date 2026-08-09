@@ -1014,6 +1014,10 @@ body {
   margin-bottom: 18px;
 }
 
+.grade-eventos {
+  display: block;
+}
+
 .grupo-passado {
   opacity: 0.82;
 }
