@@ -77,8 +77,21 @@ Modo P3 ativo
 <option value="2">2º Esquadrão</option>
 </select>
 </div>
-<button onclick="imprimirAgenda()">Imprimir agenda</button>
-<button class="botao-secundario" onclick="compartilharAgenda()">Compartilhar</button>
+<div class="campo">
+<label for="modoVisualizacao">Visualização</label>
+<select id="modoVisualizacao">
+<option value="dia">Dia</option>
+<option value="semana">Semana</option>
+<option value="mes" selected>Mês</option>
+<option value="ano">Ano</option>
+</select>
+</div>
+<div class="campo campo-data-referencia">
+<label for="dataReferencia">Data de referência</label>
+<input id="dataReferencia" type="date" min="2026-01-01" max="2026-12-31" value="2026-08-09">
+</div>
+<button onclick="exportarPDF()">Gerar PDF</button>
+<button class="botao-whatsapp" onclick="compartilharWhatsApp()">WhatsApp</button>
 </section>
 <div class="resumo">
 <div class="indicador">Ano: <strong>2026</strong></div>
@@ -112,8 +125,24 @@ Modo P3 ativo
 <input id="nomeEvento" type="text" placeholder="Nome do evento">
 </div>
 <div class="campo">
-<label for="localEvento">Local / observação</label>
-<input id="localEvento" type="text" placeholder="Local ou observação">
+<label for="localEvento">Local</label>
+<input id="localEvento" type="text" placeholder="Endereço ou ponto de referência">
+</div>
+<div class="campo">
+<label for="municipioEvento">Município</label>
+<input id="municipioEvento" type="text" placeholder="Ex.: Porto Alegre/RS">
+</div>
+<div class="campo">
+<label for="ordemServicoEvento">OSv / NSv</label>
+<input id="ordemServicoEvento" type="text" placeholder="Ex.: OSv 352">
+</div>
+<div class="campo">
+<label for="efetivoEvento">Efetivo / recursos</label>
+<input id="efetivoEvento" type="text" placeholder="Ex.: 03 Conj · 02 equinos">
+</div>
+<div class="campo campo-largo">
+<label for="observacoesEvento">Observações</label>
+<textarea id="observacoesEvento" rows="3" placeholder="Informações complementares"></textarea>
 </div>
 <div class="campo">
 <label for="tipoEvento">Tipo de evento</label>
@@ -144,6 +173,38 @@ Modo P3 ativo
 <button id="botaoSalvar" onclick="salvarEvento()">Adicionar</button>
 </div>
 <div class="mensagem" id="mensagem"></div>
+</section>
+
+<section class="formulario importacao-lote" id="areaImportacao" style="display:none;">
+<div class="cabecalho-secao">
+<div>
+<span class="rotulo-secao">Ferramenta P3</span>
+<h2>Importação em lote</h2>
+<p>Cole uma programação em texto. Revise a prévia antes de gravar no banco.</p>
+</div>
+<button class="botao-secundario" type="button" onclick="alternarImportacao()">Fechar</button>
+</div>
+<label for="textoImportacao">Programação</label>
+<textarea id="textoImportacao" rows="12" placeholder="*Dia 06/08 - Quinta-feira / 2º Esqd*&#10;- *POLOST* Praças... | 13h às 19h |"></textarea>
+<div class="linha-botoes importacao-acoes">
+<button type="button" onclick="analisarImportacao()">Analisar programação</button>
+<button type="button" id="botaoImportar" onclick="importarEventosAnalisados()" disabled>Importar eventos válidos</button>
+</div>
+<div id="resumoImportacao" class="resumo-importacao" aria-live="polite"></div>
+<div id="previaImportacao" class="previa-importacao"></div>
+</section>
+
+<section class="barra-administrativa" id="atalhosAdministrativos" style="display:none;">
+<button type="button" onclick="alternarImportacao()">Importar programação em lote</button>
+<button type="button" class="botao-secundario" onclick="alternarAuditoria()">Histórico e auditoria</button>
+</section>
+
+<section class="formulario auditoria" id="areaAuditoria" style="display:none;">
+<div class="cabecalho-secao">
+<div><span class="rotulo-secao">Rastreabilidade</span><h2>Histórico e auditoria</h2></div>
+<button class="botao-secundario" type="button" onclick="alternarAuditoria()">Fechar</button>
+</div>
+<div id="listaAuditoria" class="lista-auditoria"></div>
 </section>
 </main>
 <footer>Programação Operacional 4ºRPMon — Painel do P3</footer>
