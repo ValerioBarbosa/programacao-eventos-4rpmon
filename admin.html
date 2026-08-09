@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Painel P3 — Programação Operacional 4ºRPMon</title>
+<title>Painel P3 â€” ProgramaÃ§Ã£o Operacional 4ÂºRPMon</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header>
 <div class="container cabecalho">
 <div class="identidade">
-<div class="brasao"><img src="image.png" alt="Brasão do 4º RPMon"></div>
+<div class="brasao"><img src="image.png" alt="BrasÃ£o do 4Âº RPMon"></div>
 <div>
-<h1>Programação Operacional 4ºRPMon</h1>
-<p class="subtitulo">Painel de gerenciamento — P3</p>
+<h1>ProgramaÃ§Ã£o Operacional 4ÂºRPMon</h1>
+<p class="subtitulo">Painel de gerenciamento â€” P3</p>
 </div>
 </div>
 <div class="area-acesso">
@@ -22,13 +22,13 @@
 Modo P3 ativo
 <button onclick="sairModoP3()">Sair</button>
 </div>
-<a class="botao-acesso" href="index.html">Ver agenda pública</a>
+<a class="botao-acesso" href="index.html">Ver agenda pÃºblica</a>
 <div class="mes-cabecalho">
-<label for="mesSelecionado">Mês de referência</label>
+<label for="mesSelecionado">MÃªs de referÃªncia</label>
 <select id="mesSelecionado">
 <option value="0">Janeiro</option>
 <option value="1">Fevereiro</option>
-<option value="2">Março</option>
+<option value="2">MarÃ§o</option>
 <option value="3">Abril</option>
 <option value="4">Maio</option>
 <option value="5">Junho</option>
@@ -47,49 +47,62 @@ Modo P3 ativo
 <section class="painel">
 <div class="campo">
 <label for="pesquisa">Pesquisar evento</label>
-<input id="pesquisa" type="search" placeholder="Ex.: operação, futebol, reunião...">
+<input id="pesquisa" type="search" placeholder="Ex.: operaÃ§Ã£o, futebol, reuniÃ£o...">
 </div>
 <div class="campo">
 <label for="filtroTipo">Tipo de evento</label>
 <select id="filtroTipo">
 <option value="todos">Todos os tipos</option>
 <option value="POLOST">01. POLOST</option>
-<option value="Operações">02. Operações</option>
-<option value="Manifestação Social">03. Manifestação Social</option>
+<option value="OperaÃ§Ãµes">02. OperaÃ§Ãµes</option>
+<option value="ManifestaÃ§Ã£o Social">03. ManifestaÃ§Ã£o Social</option>
 <option value="Jogos de Futebol">04. Jogos de Futebol</option>
 <option value="Passeio a Cavalo">05. Passeio a Cavalo</option>
 <option value="Carnaval">06. Carnaval</option>
 <option value="Cavalgadas">07. Cavalgadas</option>
 <option value="Rodeios">08. Rodeios</option>
-<option value="Dragões, Representações e Outros">09. Dragões, Representações e Outros</option>
-<option value="Clarim, Formaturas e Reuniões">10. Clarim, Formaturas e Reuniões</option>
+<option value="DragÃµes, RepresentaÃ§Ãµes e Outros">09. DragÃµes, RepresentaÃ§Ãµes e Outros</option>
+<option value="Clarim, Formaturas e ReuniÃµes">10. Clarim, Formaturas e ReuniÃµes</option>
 <option value="Shows e Eventos">11. Shows e Eventos</option>
-<option value="Empréstimo de VTR ou CAM BOX">12. Empréstimo de VTR ou CAM BOX</option>
+<option value="EmprÃ©stimo de VTR ou CAM BOX">12. EmprÃ©stimo de VTR ou CAM BOX</option>
 <option value="Transporte de Equinos e Provas">13. Transporte de Equinos e Provas</option>
 <option value="Viagens e Deslocamentos Operacionais">14. Viagens e Deslocamentos Operacionais</option>
 </select>
 </div>
 <div class="campo">
-<label for="filtroEsquadrao">Esquadrão</label>
+<label for="filtroEsquadrao">EsquadrÃ£o</label>
 <select id="filtroEsquadrao">
-<option value="todos">Todos os esquadrões</option>
-<option value="1">1º Esquadrão</option>
-<option value="2">2º Esquadrão</option>
+<option value="todos">Todos os esquadrÃµes</option>
+<option value="1">1Âº EsquadrÃ£o</option>
+<option value="2">2Âº EsquadrÃ£o</option>
 </select>
 </div>
-<button onclick="imprimirAgenda()">Imprimir agenda</button>
-<button class="botao-secundario" onclick="compartilharAgenda()">Compartilhar</button>
+<div class="campo">
+<label for="modoVisualizacao">VisualizaÃ§Ã£o</label>
+<select id="modoVisualizacao">
+<option value="dia">Dia</option>
+<option value="semana">Semana</option>
+<option value="mes" selected>MÃªs</option>
+<option value="ano">Ano</option>
+</select>
+</div>
+<div class="campo campo-data-referencia">
+<label for="dataReferencia">Data de referÃªncia</label>
+<input id="dataReferencia" type="date" min="2026-01-01" max="2026-12-31" value="2026-08-09">
+</div>
+<button onclick="exportarPDF()">Gerar PDF</button>
+<button class="botao-whatsapp" onclick="compartilharWhatsApp()">WhatsApp</button>
 </section>
 <div class="resumo">
 <div class="indicador">Ano: <strong>2026</strong></div>
-<div class="indicador">Mês: <strong id="nomeMesResumo">Agosto</strong></div>
+<div class="indicador">MÃªs: <strong id="nomeMesResumo">Agosto</strong></div>
 <div class="indicador">Eventos exibidos: <strong id="totalEventos">0</strong></div>
 </div>
 <h2 class="titulo-mes" id="tituloMes">Agosto de 2026</h2>
 <section class="grade-eventos" id="listaEventos"></section>
 
 <section class="formulario" id="areaAdministrativa" style="display:none;">
-<h2 id="tituloFormulario">Adicionar evento — P3</h2>
+<h2 id="tituloFormulario">Adicionar evento â€” P3</h2>
 <div class="form-grid">
 <div class="campo">
 <label for="dataInicial">Data Inicial</label>
@@ -100,11 +113,11 @@ Modo P3 ativo
 <input id="dataFinal" type="date" min="2026-01-01" max="2026-12-31">
 </div>
 <div class="campo">
-<label for="horaInicial">Horário Inicial</label>
+<label for="horaInicial">HorÃ¡rio Inicial</label>
 <input id="horaInicial" type="time">
 </div>
 <div class="campo">
-<label for="horaFinal">Horário Final</label>
+<label for="horaFinal">HorÃ¡rio Final</label>
 <input id="horaFinal" type="time">
 </div>
 <div class="campo">
@@ -112,45 +125,93 @@ Modo P3 ativo
 <input id="nomeEvento" type="text" placeholder="Nome do evento">
 </div>
 <div class="campo">
-<label for="localEvento">Local / observação</label>
-<input id="localEvento" type="text" placeholder="Local ou observação">
+<label for="localEvento">Local</label>
+<input id="localEvento" type="text" placeholder="EndereÃ§o ou ponto de referÃªncia">
+</div>
+<div class="campo">
+<label for="municipioEvento">MunicÃ­pio</label>
+<input id="municipioEvento" type="text" placeholder="Ex.: Porto Alegre/RS">
+</div>
+<div class="campo">
+<label for="ordemServicoEvento">OSv / NSv</label>
+<input id="ordemServicoEvento" type="text" placeholder="Ex.: OSv 352">
+</div>
+<div class="campo">
+<label for="efetivoEvento">Efetivo / recursos</label>
+<input id="efetivoEvento" type="text" placeholder="Ex.: 03 Conj Â· 02 equinos">
+</div>
+<div class="campo campo-largo">
+<label for="observacoesEvento">ObservaÃ§Ãµes</label>
+<textarea id="observacoesEvento" rows="3" placeholder="InformaÃ§Ãµes complementares"></textarea>
 </div>
 <div class="campo">
 <label for="tipoEvento">Tipo de evento</label>
 <select id="tipoEvento">
 <option value="POLOST">01. POLOST</option>
-<option value="Operações">02. Operações</option>
-<option value="Manifestação Social">03. Manifestação Social</option>
+<option value="OperaÃ§Ãµes">02. OperaÃ§Ãµes</option>
+<option value="ManifestaÃ§Ã£o Social">03. ManifestaÃ§Ã£o Social</option>
 <option value="Jogos de Futebol">04. Jogos de Futebol</option>
 <option value="Passeio a Cavalo">05. Passeio a Cavalo</option>
 <option value="Carnaval">06. Carnaval</option>
 <option value="Cavalgadas">07. Cavalgadas</option>
 <option value="Rodeios">08. Rodeios</option>
-<option value="Dragões, Representações e Outros">09. Dragões, Representações e Outros</option>
-<option value="Clarim, Formaturas e Reuniões">10. Clarim, Formaturas e Reuniões</option>
+<option value="DragÃµes, RepresentaÃ§Ãµes e Outros">09. DragÃµes, RepresentaÃ§Ãµes e Outros</option>
+<option value="Clarim, Formaturas e ReuniÃµes">10. Clarim, Formaturas e ReuniÃµes</option>
 <option value="Shows e Eventos">11. Shows e Eventos</option>
-<option value="Empréstimo de VTR ou CAM BOX">12. Empréstimo de VTR ou CAM BOX</option>
+<option value="EmprÃ©stimo de VTR ou CAM BOX">12. EmprÃ©stimo de VTR ou CAM BOX</option>
 <option value="Transporte de Equinos e Provas">13. Transporte de Equinos e Provas</option>
 <option value="Viagens e Deslocamentos Operacionais">14. Viagens e Deslocamentos Operacionais</option>
 </select>
 </div>
 <div class="campo">
-<label for="esquadraoEvento">Esquadrão</label>
+<label for="esquadraoEvento">EsquadrÃ£o</label>
 <select id="esquadraoEvento">
-<option value="1">1º Esquadrão</option>
-<option value="2">2º Esquadrão</option>
+<option value="1">1Âº EsquadrÃ£o</option>
+<option value="2">2Âº EsquadrÃ£o</option>
 </select>
 </div>
 <button id="botaoSalvar" onclick="salvarEvento()">Adicionar</button>
 </div>
 <div class="mensagem" id="mensagem"></div>
 </section>
+
+<section class="formulario importacao-lote" id="areaImportacao" style="display:none;">
+<div class="cabecalho-secao">
+<div>
+<span class="rotulo-secao">Ferramenta P3</span>
+<h2>ImportaÃ§Ã£o em lote</h2>
+<p>Cole uma programaÃ§Ã£o em texto. Revise a prÃ©via antes de gravar no banco.</p>
+</div>
+<button class="botao-secundario" type="button" onclick="alternarImportacao()">Fechar</button>
+</div>
+<label for="textoImportacao">ProgramaÃ§Ã£o</label>
+<textarea id="textoImportacao" rows="12" placeholder="*Dia 06/08 - Quinta-feira / 2Âº Esqd*&#10;- *POLOST* PraÃ§as... | 13h Ã s 19h |"></textarea>
+<div class="linha-botoes importacao-acoes">
+<button type="button" onclick="analisarImportacao()">Analisar programaÃ§Ã£o</button>
+<button type="button" id="botaoImportar" onclick="importarEventosAnalisados()" disabled>Importar eventos vÃ¡lidos</button>
+</div>
+<div id="resumoImportacao" class="resumo-importacao" aria-live="polite"></div>
+<div id="previaImportacao" class="previa-importacao"></div>
+</section>
+
+<section class="barra-administrativa" id="atalhosAdministrativos" style="display:none;">
+<button type="button" onclick="alternarImportacao()">Importar programaÃ§Ã£o em lote</button>
+<button type="button" class="botao-secundario" onclick="alternarAuditoria()">HistÃ³rico e auditoria</button>
+</section>
+
+<section class="formulario auditoria" id="areaAuditoria" style="display:none;">
+<div class="cabecalho-secao">
+<div><span class="rotulo-secao">Rastreabilidade</span><h2>HistÃ³rico e auditoria</h2></div>
+<button class="botao-secundario" type="button" onclick="alternarAuditoria()">Fechar</button>
+</div>
+<div id="listaAuditoria" class="lista-auditoria"></div>
+</section>
 </main>
-<footer>Programação Operacional 4ºRPMon — Painel do P3</footer>
+<footer>ProgramaÃ§Ã£o Operacional 4ÂºRPMon â€” Painel do P3</footer>
 
 <div class="sobreposicao" id="sobreposicaoSenha" style="display:none;">
 <div class="caixa-senha">
-<h3>Acesso restrito — P3</h3>
+<h3>Acesso restrito â€” P3</h3>
 <input id="campoEmail" type="email" placeholder="E-mail" autocomplete="username">
 <input id="campoSenha" type="password" placeholder="Senha" autocomplete="current-password" onkeydown="if(event.key==='Enter') validarSenha()">
 <div class="linha-botoes">
