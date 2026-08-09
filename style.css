@@ -14,6 +14,62 @@
   --raio: 12px;
 }
 
+/* ===== Agenda 2.0: perÃ­odos, dados estruturados e administraÃ§Ã£o ===== */
+.botao-whatsapp { background: #16794b; }
+.campo-data-referencia { min-width: 170px; }
+body[data-visualizacao="mes"] .campo-data-referencia,
+body[data-visualizacao="ano"] .campo-data-referencia { display: none; }
+
+.grupo-dia { margin: 0 0 24px; }
+.cabecalho-dia {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  margin: 0 0 12px; padding: 12px 16px; color: #17375e;
+  background: linear-gradient(90deg, #edf3f9, #f8fafc); border: 1px solid #d5e0eb; border-radius: 12px;
+}
+.cabecalho-dia span { display: block; margin-bottom: 2px; color: #64748b; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.cabecalho-dia h3 { margin: 0; font-size: 1.05rem; }
+.cabecalho-dia > strong { color: #52657a; font-size: .82rem; }
+.grupo-hoje .cabecalho-dia { color: #fff; background: linear-gradient(110deg, #17375e, #2d5c8f); border-color: #17375e; box-shadow: 0 8px 20px rgba(23,55,94,.18); }
+.grupo-hoje .cabecalho-dia span, .grupo-hoje .cabecalho-dia > strong { color: #dceafb; }
+.grupo-futuro .cabecalho-dia { border-left: 5px solid #cf9f35; }
+.grade-dia { display: grid; grid-template-columns: repeat(auto-fit,minmax(290px,1fr)); gap: 14px; }
+.evento-topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.evento-metadados { display: grid; gap: 5px; margin-top: 12px; }
+.meta-item { color: #52657a; font-size: .82rem; line-height: 1.45; }
+.meta-item b { color: #24384e; }
+
+.form-grid textarea, .formulario > textarea, .importacao-lote textarea {
+  width: 100%; padding: 11px 12px; resize: vertical; color: #1e293b; background: #fff;
+  border: 1px solid #cbd5e1; border-radius: 9px; font: inherit;
+}
+.campo-largo { grid-column: 1 / -1; }
+.barra-administrativa { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0; padding: 14px; background: #edf3f9; border: 1px solid #d5e0eb; border-radius: 12px; }
+.cabecalho-secao { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 16px; }
+.cabecalho-secao h2 { margin: 2px 0 4px; }
+.cabecalho-secao p { margin: 0; color: #64748b; }
+.rotulo-secao { color: #8b651b; font-size: .72rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+.importacao-acoes { justify-content: flex-start; margin: 14px 0; }
+.resumo-importacao { margin: 12px 0; padding: 12px 14px; color: #17375e; background: #edf3f9; border-radius: 9px; }
+.tabela-responsiva { overflow-x: auto; border: 1px solid #d5e0eb; border-radius: 10px; }
+.tabela-responsiva table { width: 100%; border-collapse: collapse; background: #fff; }
+.tabela-responsiva th, .tabela-responsiva td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: .85rem; }
+.tabela-responsiva th { color: #fff; background: #17375e; }
+.linha-alerta { color: #8b2b22; background: #fff2f0; }
+.item-auditoria { margin-bottom: 9px; background: #fff; border: 1px solid #d5e0eb; border-radius: 10px; }
+.item-auditoria summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 13px 15px; cursor: pointer; }
+.item-auditoria summary div { display: grid; gap: 3px; }
+.item-auditoria summary span { color: #64748b; font-size: .78rem; }
+.item-auditoria ol { margin: 0; padding: 0 18px 14px 42px; color: #52657a; }
+.item-auditoria li { padding: 5px 0; }
+.item-auditoria time { display: block; color: #8492a3; font-size: .76rem; }
+
+@media (max-width: 720px) {
+  .cabecalho-secao { flex-direction: column; }
+  .grade-dia { grid-template-columns: 1fr; }
+  .evento-topo { align-items: flex-start; flex-direction: column; }
+  .barra-administrativa > button { width: 100%; }
+}
+
 /* =========================
    RESET E BASE
 ========================= */
@@ -76,7 +132,7 @@ button:disabled {
 }
 
 /* =========================
-   CABEÇALHO
+   CABEÃ‡ALHO
 ========================= */
 
 header {
@@ -149,7 +205,7 @@ h1 {
   overflow-wrap: anywhere;
 }
 
-/* Área de acesso — centralizada em ambas as páginas */
+/* Ãrea de acesso â€” centralizada em ambas as pÃ¡ginas */
 .area-acesso {
   display: flex;
   flex-wrap: wrap;
@@ -188,7 +244,7 @@ h1 {
 }
 
 /* =========================
-   BOTÕES DO CABEÇALHO
+   BOTÃ•ES DO CABEÃ‡ALHO
 ========================= */
 
 .botao-acesso {
@@ -238,7 +294,7 @@ h1 {
 }
 
 /* =========================
-   CONTEÚDO PRINCIPAL
+   CONTEÃšDO PRINCIPAL
 ========================= */
 
 main {
@@ -247,7 +303,7 @@ main {
 }
 
 /* =========================================================
-   PAINEL DE FILTROS — DESKTOP (tudo em uma linha)
+   PAINEL DE FILTROS â€” DESKTOP (tudo em uma linha)
 ========================================================= */
 
 .painel {
@@ -389,7 +445,7 @@ textarea:focus {
 }
 
 /* =========================
-   RESUMO E TÍTULOS
+   RESUMO E TÃTULOS
 ========================= */
 
 .resumo {
@@ -570,7 +626,7 @@ textarea:focus {
 .tipo-outros .evento-tipo { color: #64748b; background: #eef1f4; }
 
 /* =========================
-   CORES POR ESQUADRÃO
+   CORES POR ESQUADRÃƒO
 ========================= */
 
 .evento-card.esquadrao-1 {
@@ -594,7 +650,7 @@ textarea:focus {
 }
 
 /* =========================
-   FORMULÁRIO
+   FORMULÃRIO
 ========================= */
 
 .formulario {
@@ -631,7 +687,7 @@ textarea:focus {
 }
 
 /* =========================
-   AVISOS E RODAPÉ
+   AVISOS E RODAPÃ‰
 ========================= */
 
 .aviso-visualizacao {
@@ -724,7 +780,7 @@ footer {
 }
 
 /* =========================================================
-   CELULARES (até 700px)
+   CELULARES (atÃ© 700px)
 ========================================================= */
 
 @media (max-width: 700px) {
@@ -836,7 +892,7 @@ footer {
 }
 
 /* =========================================================
-   CELULARES MUITO PEQUENOS (até 380px)
+   CELULARES MUITO PEQUENOS (atÃ© 380px)
 ========================================================= */
 
 @media (max-width: 380px) {
@@ -864,7 +920,7 @@ footer {
 }
 
 /* =========================
-   IMPRESSÃO
+   IMPRESSÃƒO
 ========================= */
 
 @media print {
