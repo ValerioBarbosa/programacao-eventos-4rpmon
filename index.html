@@ -3,13 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<meta name="theme-color" content="#087443">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Agenda 4RPMon">
 <title>Programação Operacional 4ºRPMon</title>
 <meta id="metaDescricao" name="description" content="Agenda de eventos e atividades do 4ºRPMon — 2026.">
 <meta property="og:title" content="Programação Operacional 4ºRPMon">
 <meta id="ogDescricao" property="og:description" content="Agenda de eventos e atividades do 4ºRPMon — 2026.">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://www.gstatic.com">
-<link rel="stylesheet" href="style.css?v=20260809-2">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css?v=20260809-3">
 </head>
 <body>
 
@@ -31,6 +39,7 @@
 
     <div class="area-acesso">
       <a class="botao-acesso" href="admin.html">Acesso P3</a>
+      <button class="botao-acesso botao-instalar" id="botaoInstalar" type="button" onclick="instalarAplicativo()">Instalar</button>
 
       <div class="mes-cabecalho">
         <label for="mesSelecionado">Mês de referência</label>
@@ -124,6 +133,18 @@
     <button class="botao-limpar" type="button" onclick="limparFiltros()">Limpar filtros</button>
   </section>
 
+  <section class="painel-indicadores" aria-labelledby="tituloIndicadores">
+    <div class="cabecalho-indicadores">
+      <div>
+        <span class="rotulo-secao">Visão operacional</span>
+        <h2 id="tituloIndicadores">Resumo da programação</h2>
+      </div>
+      <span class="atualizacao-indicadores" id="atualizacaoIndicadores">Aguardando dados…</span>
+    </div>
+    <div class="grade-indicadores" id="gradeIndicadores" aria-live="polite"></div>
+    <div class="quebra-indicadores" id="quebraIndicadores"></div>
+  </section>
+
   <div class="resumo">
     <div class="indicador">Ano: <strong id="anoResumo">2026</strong></div>
     <div class="indicador">Mês: <strong id="nomeMesResumo">Agosto</strong></div>
@@ -139,6 +160,6 @@
 
 <footer id="rodapeAgenda">Programação Operacional 4ºRPMon — Agenda de eventos de 2026</footer>
 
-<script type="module" src="app.js?v=20260809-1"></script>
+<script type="module" src="app.js?v=20260809-3"></script>
 </body>
 </html>

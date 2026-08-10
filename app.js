@@ -26,6 +26,8 @@ let primeiraCargaConcluida = false;
 let debounceId = null;
 let ultimoElementoComFoco = null;
 let mostrarPassados = false;
+let promptInstalacao = null;
+let eventoDetalhePendente = new URLSearchParams(window.location.search).get("evento");
 
 const $ = id => document.getElementById(id);
 const mesSelecionado = $("mesSelecionado");
@@ -54,6 +56,9 @@ const campoEmail = $("campoEmail");
 const campoSenha = $("campoSenha");
 const tituloFormulario = $("tituloFormulario");
 const botaoSalvar = $("botaoSalvar");
+const gradeIndicadores = $("gradeIndicadores");
+const quebraIndicadores = $("quebraIndicadores");
+const atualizacaoIndicadores = $("atualizacaoIndicadores");
 
 function escaparHTML(texto){
   return String(texto ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;")
@@ -90,6 +95,71 @@ function formatarPeriodoHorario(e){
   if(!inicio) return "Horário a definir";
   return fim ? `${inicio} às ${fim}` : inicio;
 }
+
+function obterLocalCompleto(e){ return [e.local,e.municipio].filter(Boolean).join(", "); }
+function obterEvento(id){ return eventos.find(e => e.id === id && !e.excluido); }
+function urlPublicaEvento(e){
+  const url=new URL("index.html",window.location.href);
+  url.search=""; url.hash=""; url.searchParams.set("evento",e.id); return url.href;
+}
+function textoEvento(e){
+  const linhas=[
+    `*${e.nome||"Evento"}*`,
+    `${formatarData(obterDataInicial(e))} · ${formatarPeriodoHorario(e)}`,
+    e.tipo,
+    obterTextoEsquadrao(obterEsquadrao(e)),
+    obterLocalCompleto(e),
+    e.efetivo&&`Efetivo: ${e.efetivo}`,
+    e.ordemServico&&`OSv/NSv: ${e.ordemServico}`,
+    e.observacoes,
+    urlPublicaEvento(e)
+  ];
+  return linhas.filter(Boolean).join("\n");
+}
+
+async function copiarTexto(texto){
+  try{ await navigator.clipboard.writeText(texto); return true; }
+  catch{
+    const campo=document.createElement("textarea"); campo.value=texto; campo.style.position="fixed"; campo.style.opacity="0";
+    document.body.appendChild(campo); campo.select(); const copiado=document.execCommand("copy"); campo.remove(); return copiado;
+  }
+}
+
+function escaparICS(valor){ return String(valor||"").replace(/\\/g,"\\\\").replace(/\n/g,"\\n").replace(/,/g,"\\,").replace(/;/g,"\\;"); }
+function dataICS(data){ return String(data||"").replaceAll("-",""); }
+function dataHoraICS(data,hora){ return `${dataICS(data)}T${String(hora||"00:00").replace(":","")}00`; }
+function criarICS(e){
+  const inicio=obterDataInicial(e), fim=obterDataFinal(e)||inicio, horaInicio=obterHoraInicial(e), horaFim=obterHoraFinal(e);
+  const datas=horaInicio
+    ? [`DTSTART:${dataHoraICS(inicio,horaInicio)}`,...(horaFim?[`DTEND:${dataHoraICS(fim,horaFim)}`]:[])]
+    : [`DTSTART;VALUE=DATE:${dataICS(inicio)}`,`DTEND;VALUE=DATE:${dataICS(somarDias(fim,1))}`];
+  return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//4RPMon//Agenda Operacional//PT-BR","CALSCALE:GREGORIAN","METHOD:PUBLISH","BEGIN:VEVENT",`UID:${escaparICS(e.id)}@agenda-4rpmon`,`DTSTAMP:${new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"")}`,...datas,`SUMMARY:${escaparICS(e.nome)}`,`DESCRIPTION:${escaparICS([e.tipo,obterTextoEsquadrao(obterEsquadrao(e)),e.efetivo,e.ordemServico,e.observacoes,urlPublicaEvento(e)].filter(Boolean).join(" · "))}`,`LOCATION:${escaparICS(obterLocalCompleto(e))}`,"END:VEVENT","END:VCALENDAR"].join("\r\n");
+}
+
+function baixarArquivo(nome,conteudo,tipo){
+  const url=URL.createObjectURL(new Blob([conteudo],{type:tipo})); const link=document.createElement("a");
+  link.href=url; link.download=nome; document.body.appendChild(link); link.click(); link.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+function garantirModalDetalhes(){
+  let modal=$("modalDetalhesEvento"); if(modal) return modal;
+  modal=document.createElement("div"); modal.id="modalDetalhesEvento"; modal.className="sobreposicao modal-evento"; modal.style.display="none";
+  modal.setAttribute("role","dialog"); modal.setAttribute("aria-modal","true"); modal.setAttribute("aria-labelledby","modalEventoTitulo");
+  modal.innerHTML='<div class="caixa-detalhes"><button class="fechar-detalhes" type="button" aria-label="Fechar detalhes" onclick="fecharDetalhesEvento()">×</button><div id="conteudoDetalhesEvento"></div></div>';
+  modal.addEventListener("click",evento=>{ if(evento.target===modal) window.fecharDetalhesEvento(); }); document.body.appendChild(modal); return modal;
+}
+
+window.abrirDetalhesEvento=function(id){
+  const e=obterEvento(id); if(!e) return;
+  const modal=garantirModalDetalhes(), conteudo=$("conteudoDetalhesEvento"), local=obterLocalCompleto(e);
+  conteudo.innerHTML=`<span class="evento-tipo ${obterClasseTipo(e.tipo)}">${escaparHTML(e.tipo||"Outros")}</span><h2 id="modalEventoTitulo">${escaparHTML(e.nome||"Evento")}</h2><p class="detalhe-data">${escaparHTML(formatarData(obterDataInicial(e)))} · ${escaparHTML(formatarPeriodoHorario(e))}</p><div class="detalhes-grid">${metadado("Esquadrão",obterTextoEsquadrao(obterEsquadrao(e)))}${metadado("Local",e.local)}${metadado("Município",e.municipio)}${metadado("Efetivo / recursos",e.efetivo)}${metadado("OSv / NSv",e.ordemServico)}${metadado("Observações",e.observacoes)}</div><div class="acoes-detalhes"><button type="button" onclick="copiarLinkEvento('${e.id}')">Copiar link</button><button class="botao-whatsapp" type="button" onclick="compartilharEventoWhatsApp('${e.id}')">WhatsApp</button><button class="botao-secundario" type="button" onclick="adicionarEventoCalendario('${e.id}')">Adicionar ao calendário</button>${local?`<button class="botao-mapa" type="button" onclick="abrirMapaEvento('${e.id}')">Traçar rota</button>`:""}</div>`;
+  modal.style.display="flex"; document.body.classList.add("modal-aberto"); modal.querySelector(".fechar-detalhes")?.focus();
+};
+window.fecharDetalhesEvento=function(){ const modal=$("modalDetalhesEvento"); if(modal) modal.style.display="none"; document.body.classList.remove("modal-aberto"); };
+window.copiarLinkEvento=async function(id){ const e=obterEvento(id); if(!e) return; const ok=await copiarTexto(urlPublicaEvento(e)); if(statusAgenda) statusAgenda.textContent=ok?"Link do evento copiado.":"Não foi possível copiar o link."; };
+window.compartilharEventoWhatsApp=function(id){ const e=obterEvento(id); if(e) window.open(`https://wa.me/?text=${encodeURIComponent(textoEvento(e))}`,"_blank","noopener,noreferrer"); };
+window.adicionarEventoCalendario=function(id){ const e=obterEvento(id); if(!e) return; baixarArquivo(`evento-4rpmon-${obterDataInicial(e)}.ics`,criarICS(e),"text/calendar;charset=utf-8"); };
+window.abrirMapaEvento=function(id){ const e=obterEvento(id), local=e&&obterLocalCompleto(e); if(local) window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(local)}`,"_blank","noopener,noreferrer"); };
 
 function dataLocalISO(data=new Date()){
   const y=data.getFullYear(), m=String(data.getMonth()+1).padStart(2,"0"), d=String(data.getDate()).padStart(2,"0");
@@ -202,11 +272,45 @@ function intervaloVisualizacao(){
   return {inicio,fim,titulo:`${nomesMeses[mes]} de ${ano}`};
 }
 
+function contarNoIntervalo(lista,inicio,fim){ return lista.filter(e=>eventoNoIntervalo(e,inicio,fim)).length; }
+function renderizarIndicadores(filtrados=[]){
+  if(!gradeIndicadores || !quebraIndicadores) return;
+  const ativos=eventos.filter(e=>!e.excluido&&obterDataInicial(e));
+  const hoje=dataLocalISO(), diaSemana=new Date(`${hoje}T12:00:00`).getDay()||7, inicioSemana=somarDias(hoje,1-diaSemana), fimSemana=somarDias(inicioSemana,6), fim30=somarDias(hoje,29);
+  const cards=[
+    ["Hoje",contarNoIntervalo(ativos,hoje,hoje),"eventos no dia"],
+    ["Esta semana",contarNoIntervalo(ativos,inicioSemana,fimSemana),`${formatarData(inicioSemana)} a ${formatarData(fimSemana)}`],
+    ["Próximos 30 dias",contarNoIntervalo(ativos,hoje,fim30),`até ${formatarData(fim30)}`],
+    ["Resultado atual",filtrados.length,"após período e filtros"]
+  ];
+  gradeIndicadores.innerHTML=cards.map(([rotulo,valor,detalhe])=>`<article class="indicador-operacional"><span>${escaparHTML(rotulo)}</span><strong>${valor}</strong><small>${escaparHTML(detalhe)}</small></article>`).join("");
+  const esquadroes={"1":0,"2":0}, tipos=new Map();
+  filtrados.forEach(e=>{ const esq=obterEsquadrao(e); esquadroes[esq]=(esquadroes[esq]||0)+1; tipos.set(e.tipo||"Outros",(tipos.get(e.tipo||"Outros")||0)+1); });
+  const principais=[...tipos.entries()].sort((a,b)=>b[1]-a[1]).slice(0,4);
+  quebraIndicadores.innerHTML=`<div class="quebra-grupo"><strong>Por esquadrão</strong><span>1º Esquadrão: ${esquadroes["1"]}</span><span>2º Esquadrão: ${esquadroes["2"]}</span></div><div class="quebra-grupo"><strong>Tipos mais frequentes</strong>${principais.length?principais.map(([tipo,total])=>`<span>${escaparHTML(tipo)}: ${total}</span>`).join(""):"<span>Sem eventos no resultado atual</span>"}</div>`;
+  if(atualizacaoIndicadores) atualizacaoIndicadores.textContent=`Atualizado às ${new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}`;
+}
+
+function registrarBackupAutomatico(){
+  if(!auth.currentUser || !eventos.length) return;
+  try{
+    const payload={versao:1,geradoEm:agoraISO(),usuario:usuarioAtual().email,eventos};
+    localStorage.setItem("agenda4rpmon-backup-automatico",JSON.stringify(payload));
+  }catch{ /* O navegador pode bloquear armazenamento local. */ }
+}
+
+window.baixarBackupJSON=function(){
+  if(!modoP3) return;
+  const payload={versao:1,geradoEm:agoraISO(),usuario:usuarioAtual().email,eventos};
+  baixarArquivo(`backup-agenda-4rpmon-${dataLocalISO()}.json`,JSON.stringify(payload,null,2),"application/json;charset=utf-8");
+};
+
 function iniciarEscutaEventos(){
   renderizarCarregamento();
   onSnapshot(query(collection(db,"eventos")), snapshot => {
     eventos=snapshot.docs.map(documento => ({id:documento.id,...documento.data()}));
-    primeiraCargaConcluida=true; sincronizarOpcoesAno(); renderizar(); renderizarAuditoria();
+    primeiraCargaConcluida=true; sincronizarOpcoesAno(); renderizar(); renderizarAuditoria(); registrarBackupAutomatico();
+    if(eventoDetalhePendente){ const id=eventoDetalhePendente; eventoDetalhePendente=null; setTimeout(()=>window.abrirDetalhesEvento(id),100); }
   }, () => {
     primeiraCargaConcluida=true;
     if(statusAgenda) statusAgenda.textContent="Falha ao carregar a programação.";
@@ -240,7 +344,7 @@ if(sobreposicaoSenha){
 }
 
 onAuthStateChanged(auth, usuario => {
-  modoP3=!!usuario; if(!modoP3) cancelarEdicao(); atualizarPermissoes(); renderizar();
+  modoP3=!!usuario; if(!modoP3) cancelarEdicao(); atualizarPermissoes(); renderizar(); if(modoP3) registrarBackupAutomatico();
 });
 
 function atualizarPermissoes(){
@@ -270,6 +374,7 @@ function renderizar(){
     return (!termo || haystack.includes(termo)) && (tipo==="todos" || e.tipo===tipo) && (esq==="todos" || obterEsquadrao(e)===esq);
   }).sort((a,b)=>`${obterDataInicial(a)}${obterHoraInicial(a)}`.localeCompare(`${obterDataInicial(b)}${obterHoraInicial(b)}`));
   eventosFiltradosAtuais=filtrados; totalEventos.textContent=filtrados.length;
+  renderizarIndicadores(filtrados);
   if(tituloMes) tituloMes.textContent=titulo;
   if(nomeMesResumo) nomeMesResumo.textContent=modo==="ano"?"Ano completo":titulo;
   if(anoResumo) anoResumo.textContent=modo==="proximos"&&inicio.slice(0,4)!==fim.slice(0,4)?`${inicio.slice(0,4)}–${fim.slice(0,4)}`:String(ano);
@@ -309,9 +414,11 @@ function renderizar(){
     itens.forEach(e=>{
       const card=document.createElement("article");
       card.className=`evento-card ${obterClasseTipo(e.tipo)} ${obterClasseEsquadrao(obterEsquadrao(e))} ${data===hoje?"evento-hoje":""}`;
-      if(data===hoje) card.setAttribute("aria-label",`Evento de hoje: ${e.nome||"Evento"}`);
-      const acoes=modoP3&&areaAdministrativa?`<div class="acoes-card"><button class="botao-editar" onclick="iniciarEdicao('${e.id}')">Editar</button><button class="botao-excluir" onclick="excluirEvento('${e.id}')">Excluir</button></div>`:"";
-      card.innerHTML=`${data===hoje?'<span class="selo-hoje">Hoje</span>':""}<div class="evento-topo"><span class="evento-data">${escaparHTML(formatarPeriodoHorario(e))}</span><span class="evento-tipo">${escaparHTML(e.tipo||"Outros")}</span></div><span class="evento-esquadrao">${escaparHTML(obterTextoEsquadrao(obterEsquadrao(e)))}</span><div class="evento-nome">${escaparHTML(e.nome)}</div><div class="evento-local">${escaparHTML(e.local||"")}</div><div class="evento-metadados">${metadado("Município",e.municipio)}${metadado("OSv/NSv",e.ordemServico)}${metadado("Efetivo",e.efetivo)}${metadado("Observações",e.observacoes)}</div>${acoes}`;
+      card.setAttribute("aria-label",`${data===hoje?"Evento de hoje: ":"Evento: "}${e.nome||"Evento"}`);
+      card.addEventListener("click",()=>window.abrirDetalhesEvento(e.id));
+      const acoesPublicas=`<div class="acoes-publicas"><button type="button" onclick="event.stopPropagation(); abrirDetalhesEvento('${e.id}')">Detalhes</button><button type="button" onclick="event.stopPropagation(); copiarLinkEvento('${e.id}')">Copiar link</button><button type="button" class="botao-secundario" onclick="event.stopPropagation(); adicionarEventoCalendario('${e.id}')">Calendário</button><button type="button" class="botao-whatsapp" onclick="event.stopPropagation(); compartilharEventoWhatsApp('${e.id}')">WhatsApp</button></div>`;
+      const acoes=modoP3&&areaAdministrativa?`<div class="acoes-card"><button class="botao-editar" onclick="event.stopPropagation(); iniciarEdicao('${e.id}')">Editar</button><button class="botao-secundario" onclick="event.stopPropagation(); duplicarEvento('${e.id}')">Duplicar</button><button class="botao-excluir" onclick="event.stopPropagation(); arquivarEvento('${e.id}')">Arquivar</button></div>`:"";
+      card.innerHTML=`${data===hoje?'<span class="selo-hoje">Hoje</span>':""}<div class="evento-topo"><span class="evento-data">${escaparHTML(formatarPeriodoHorario(e))}</span><span class="evento-tipo">${escaparHTML(e.tipo||"Outros")}</span></div><span class="evento-esquadrao">${escaparHTML(obterTextoEsquadrao(obterEsquadrao(e)))}</span><div class="evento-nome">${escaparHTML(e.nome)}</div><div class="evento-local">${escaparHTML(e.local||"")}</div><div class="evento-metadados">${metadado("Município",e.municipio)}${metadado("OSv/NSv",e.ordemServico)}${metadado("Efetivo",e.efetivo)}${metadado("Observações",e.observacoes)}</div>${acoesPublicas}${acoes}`;
       grade.appendChild(card);
     });
     grupo.appendChild(grade); listaEventos.appendChild(grupo);
@@ -337,16 +444,38 @@ function validarEvento(dados){
   return "";
 }
 
+function eventosConflitam(a,b){
+  if(obterEsquadrao(a)!==obterEsquadrao(b)) return false;
+  if(obterDataFinal(a)<obterDataInicial(b)||obterDataFinal(b)<obterDataInicial(a)) return false;
+  const inicioA=obterHoraInicial(a)||"00:00", fimA=obterHoraFinal(a)||"23:59", inicioB=obterHoraInicial(b)||"00:00", fimB=obterHoraFinal(b)||"23:59";
+  return inicioA<fimB&&inicioB<fimA;
+}
+
+function encontrarConflitos(evento,ignorarId=""){
+  return eventos.filter(e=>!e.excluido&&e.id!==ignorarId&&eventosConflitam(evento,e));
+}
+
+function camposRecomendadosPendentes(dados){
+  return [["horaInicial","horário inicial"],["local","local"],["municipio","município"],["efetivo","efetivo / recursos"]].filter(([campo])=>!dados[campo]).map(([,rotulo])=>rotulo);
+}
+
 window.salvarEvento=async function(){
   if(!modoP3){ alert("Apenas membros do P3 podem incluir ou editar eventos."); return; }
+  const obrigatorios=[$("dataInicial"),$("nomeEvento")].filter(Boolean), invalido=obrigatorios.find(campo=>!campo.checkValidity());
+  if(invalido){ invalido.reportValidity(); return; }
   const dados=lerFormulario(), erro=validarEvento(dados); if(erro){ alert(erro); return; }
   const duplicado=encontrarDuplicado(dados,eventoEmEdicaoId||"");
   if(duplicado){ alert(`Possível duplicidade: já existe “${duplicado.nome}” em ${formatarData(obterDataInicial(duplicado))}, às ${formatarHora(obterHoraInicial(duplicado))}.`); return; }
+  const conflitos=encontrarConflitos(dados,eventoEmEdicaoId||"");
+  if(conflitos.length&&!confirm(`Atenção: há ${conflitos.length} possível(is) conflito(s) de horário para o ${obterTextoEsquadrao(obterEsquadrao(dados))}. Salvar mesmo assim?`)) return;
+  const pendentes=camposRecomendadosPendentes(dados);
+  if(pendentes.length&&!confirm(`Campos recomendados não preenchidos: ${pendentes.join(", ")}. Deseja salvar mesmo assim?`)) return;
   const usuario=usuarioAtual(), instante=agoraISO();
   try{
     if(eventoEmEdicaoId){
       const atual=eventos.find(e=>e.id===eventoEmEdicaoId) || {};
-      const historico=[...(atual.historico||[]),{acao:"editado",em:instante,por:usuario.email,uid:usuario.uid}];
+      const camposAlterados=Object.keys(dados).filter(campo=>String(atual[campo]??"")!==String(dados[campo]??""));
+      const historico=[...(atual.historico||[]),{acao:"editado",em:instante,por:usuario.email,uid:usuario.uid,camposAlterados}];
       await updateDoc(doc(db,"eventos",eventoEmEdicaoId),{...dados,atualizadoEm:serverTimestamp(),atualizadoEmISO:instante,atualizadoPor:usuario.email,atualizadoPorUid:usuario.uid,historico});
       if(mensagem) mensagem.textContent="Evento atualizado com sucesso.";
     }else{
@@ -366,6 +495,13 @@ window.iniciarEdicao=function(id){
   areaAdministrativa?.scrollIntoView({behavior:"smooth"});
 };
 
+window.duplicarEvento=function(id){
+  if(!modoP3) return; const e=eventos.find(item=>item.id===id); if(!e) return; cancelarEdicao();
+  const valores={dataInicial:obterDataInicial(e),dataFinal:obterDataFinal(e),horaInicial:obterHoraInicial(e),horaFinal:obterHoraFinal(e),nomeEvento:`${e.nome||"Evento"} (cópia)`,localEvento:e.local||"",municipioEvento:e.municipio||"",ordemServicoEvento:e.ordemServico||"",efetivoEvento:e.efetivo||"",observacoesEvento:e.observacoes||"",tipoEvento:e.tipo||"POLOST",esquadraoEvento:obterEsquadrao(e)};
+  Object.entries(valores).forEach(([idCampo,valor])=>{ if($(idCampo)) $(idCampo).value=valor; });
+  if(mensagem) mensagem.textContent="Cópia preparada. Revise os dados e clique em Adicionar."; areaAdministrativa?.scrollIntoView({behavior:"smooth"});
+};
+
 function cancelarEdicao(){
   eventoEmEdicaoId=null;
   ["dataInicial","dataFinal","horaInicial","horaFinal","nomeEvento","localEvento","municipioEvento","ordemServicoEvento","efetivoEvento","observacoesEvento"].forEach(id=>{ if($(id)) $(id).value=""; });
@@ -373,12 +509,13 @@ function cancelarEdicao(){
   if(tituloFormulario) tituloFormulario.textContent="Adicionar evento — P3"; if(botaoSalvar) botaoSalvar.textContent="Adicionar";
 }
 
-window.excluirEvento=async function(id){
-  if(!modoP3) return; const e=eventos.find(item=>item.id===id); if(!e || !confirm(`Excluir “${e.nome}”? O registro permanecerá na auditoria.`)) return;
-  const usuario=usuarioAtual(), instante=agoraISO(), historico=[...(e.historico||[]),{acao:"excluído",em:instante,por:usuario.email,uid:usuario.uid}];
+window.arquivarEvento=async function(id){
+  if(!modoP3) return; const e=eventos.find(item=>item.id===id); if(!e || !confirm(`Arquivar “${e.nome}”? O registro sairá da agenda e permanecerá na auditoria.`)) return;
+  const usuario=usuarioAtual(), instante=agoraISO(), historico=[...(e.historico||[]),{acao:"arquivado",em:instante,por:usuario.email,uid:usuario.uid}];
   try{ await updateDoc(doc(db,"eventos",id),{excluido:true,excluidoEm:serverTimestamp(),excluidoEmISO:instante,excluidoPor:usuario.email,historico}); }
-  catch{ alert("Não foi possível excluir o evento."); }
+  catch{ alert("Não foi possível arquivar o evento."); }
 };
+window.excluirEvento=window.arquivarEvento;
 
 window.alternarImportacao=function(){
   if(!modoP3 || !areaImportacao) return; areaImportacao.style.display=areaImportacao.style.display==="none"?"block":"none";
@@ -448,10 +585,15 @@ window.importarEventosAnalisados=async function(){
 
 function renderizarAuditoria(){
   const lista=$("listaAuditoria"); if(!lista) return;
-  const ordenados=[...eventos].sort((a,b)=>String(b.excluidoEmISO||b.atualizadoEmISO||b.criadoEmISO||"").localeCompare(String(a.excluidoEmISO||a.atualizadoEmISO||a.criadoEmISO||"")));
+  const termo=normalizar($("filtroAuditoriaTexto")?.value||""), status=$("filtroAuditoriaStatus")?.value||"todos";
+  const ordenados=eventos.filter(e=>{
+    if(status==="ativos"&&e.excluido) return false; if(status==="arquivados"&&!e.excluido) return false;
+    const historico=e.historico||[]; const conteudo=normalizar(`${e.nome} ${e.criadoPor} ${e.atualizadoPor} ${historico.map(h=>`${h.acao} ${h.por} ${(h.camposAlterados||[]).join(" ")}`).join(" ")}`);
+    return !termo||conteudo.includes(termo);
+  }).sort((a,b)=>String(b.excluidoEmISO||b.atualizadoEmISO||b.criadoEmISO||"").localeCompare(String(a.excluidoEmISO||a.atualizadoEmISO||a.criadoEmISO||"")));
   lista.innerHTML=ordenados.length?ordenados.map(e=>{
     const historico=e.historico||[{acao:"registro legado",em:e.atualizadoEmISO||e.criadoEmISO||"",por:e.atualizadoPor||e.criadoPor||"não registrado"}];
-    return `<details class="item-auditoria"><summary><div><strong>${escaparHTML(e.nome||"Evento sem nome")}</strong><span>${formatarData(obterDataInicial(e))} · ${e.excluido?"Excluído":"Ativo"}</span></div><span>${historico.length} ações</span></summary><ol>${historico.slice().reverse().map(h=>`<li><b>${escaparHTML(h.acao)}</b> por ${escaparHTML(h.por)} <time>${h.em?new Date(h.em).toLocaleString("pt-BR"):"data não registrada"}</time></li>`).join("")}</ol></details>`;
+    return `<details class="item-auditoria"><summary><div><strong>${escaparHTML(e.nome||"Evento sem nome")}</strong><span>${formatarData(obterDataInicial(e))} · ${e.excluido?"Arquivado":"Ativo"}</span></div><span>${historico.length} ações</span></summary><ol>${historico.slice().reverse().map(h=>`<li><b>${escaparHTML(h.acao)}</b> por ${escaparHTML(h.por)}${h.camposAlterados?.length?`<small>Campos: ${escaparHTML(h.camposAlterados.join(", "))}</small>`:""}<time>${h.em?new Date(h.em).toLocaleString("pt-BR"):"data não registrada"}</time></li>`).join("")}</ol></details>`;
   }).join(""):'<div class="sem-eventos">Nenhum histórico disponível.</div>';
 }
 
@@ -495,6 +637,19 @@ window.exportarPDF=async function(){
 window.imprimirAgenda=function(){ window.print(); };
 window.compartilharAgenda=window.compartilharWhatsApp;
 
+window.addEventListener("beforeinstallprompt",evento=>{
+  evento.preventDefault(); promptInstalacao=evento; const botao=$("botaoInstalar"); if(botao) botao.textContent="Instalar aplicativo";
+});
+window.addEventListener("appinstalled",()=>{ promptInstalacao=null; const botao=$("botaoInstalar"); if(botao) botao.style.display="none"; });
+window.instalarAplicativo=async function(){
+  if(window.matchMedia("(display-mode: standalone)").matches){ alert("O aplicativo já está instalado neste aparelho."); return; }
+  if(promptInstalacao){ promptInstalacao.prompt(); await promptInstalacao.userChoice; promptInstalacao=null; return; }
+  alert("No iPhone: toque em Compartilhar e depois em “Adicionar à Tela de Início”. No Android: abra o menu do navegador e escolha “Instalar aplicativo”.");
+};
+
+if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{})); }
+document.addEventListener("keydown",evento=>{ if(evento.key==="Escape") window.fecharDetalhesEvento(); });
+
 mesSelecionado?.addEventListener("change",()=>{
   if(dataReferencia) dataReferencia.value=`${ano}-${String(Number(mesSelecionado.value)+1).padStart(2,"0")}-01`;
   mostrarPassados=false; renderizar();
@@ -510,6 +665,8 @@ modoVisualizacao?.addEventListener("change",()=>{
 dataReferencia?.addEventListener("change",renderizar);
 filtroTipo?.addEventListener("change",renderizar); filtroEsquadrao?.addEventListener("change",renderizar);
 pesquisa?.addEventListener("input",()=>{ clearTimeout(debounceId); debounceId=setTimeout(renderizar,180); });
+$("filtroAuditoriaTexto")?.addEventListener("input",()=>{ clearTimeout(debounceId); debounceId=setTimeout(renderizarAuditoria,180); });
+$("filtroAuditoriaStatus")?.addEventListener("change",renderizarAuditoria);
 
 if(mesSelecionado) mesSelecionado.value=String(hojeLocal.getMonth());
 selecionarAno(anoAtual);
