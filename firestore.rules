@@ -1,0 +1,27 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function autenticado() {
+      return request.auth != null;
+    }
+
+    function eventoValido() {
+      return (("dataInicial" in request.resource.data && request.resource.data.dataInicial is string)
+        || ("data" in request.resource.data && request.resource.data.data is string))
+        && request.resource.data.nome is string
+        && request.resource.data.nome.size() > 0
+        && (!("esquadrao" in request.resource.data) || request.resource.data.esquadrao in ['1', '2']);
+    }
+
+    match /eventos/{eventoId} {
+      allow read: if true;
+      allow create, update: if autenticado() && eventoValido();
+      allow delete: if false;
+    }
+
+    match /{documento=**} {
+      allow read, write: if false;
+    }
+  }
+}
