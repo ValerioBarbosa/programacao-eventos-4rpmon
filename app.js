@@ -612,26 +612,55 @@ window.compartilharWhatsApp=function(){
   const texto=textoAgenda(); window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`,"_blank","noopener,noreferrer");
 };
 
-async function carregarJsPDF(){
-  if(window.jspdf?.jsPDF) return window.jspdf.jsPDF;
-  await new Promise((resolve,reject)=>{ const script=document.createElement("script"); script.src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"; script.onload=resolve; script.onerror=reject; document.head.appendChild(script); });
-  return window.jspdf.jsPDF;
+function textoPDF(valor){
+  return String(valor||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/º/g,"o").replace(/ª/g,"a").replace(/[–—]/g,"-").replace(/[^\x20-\x7E]/g," ");
 }
 
-window.exportarPDF=async function(){
+function quebrarLinhaPDF(texto,limite=88){
+  const palavras=textoPDF(texto).trim().split(/\s+/), linhas=[]; let linha="";
+  palavras.forEach(palavra=>{ const candidata=linha?`${linha} ${palavra}`:palavra; if(candidata.length>limite&&linha){ linhas.push(linha); linha=palavra; }else linha=candidata; });
+  if(linha) linhas.push(linha); return linhas;
+}
+
+function escaparTextoPDF(texto){ return texto.replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)"); }
+
+function criarPDFAgenda(titulo){
+  const linhas=[];
+  eventosFiltradosAtuais.forEach(e=>{
+    linhas.push(...quebrarLinhaPDF(`${formatarData(obterDataInicial(e))} | ${formatarPeriodoHorario(e)} | ${e.nome}`));
+    const detalhes=[e.tipo,obterTextoEsquadrao(obterEsquadrao(e)),e.local,e.municipio,e.efetivo,e.ordemServico,e.observacoes].filter(Boolean).join(" | ");
+    if(detalhes) linhas.push(...quebrarLinhaPDF(detalhes));
+    linhas.push("");
+  });
+  if(!linhas.length) linhas.push("Nenhum evento neste periodo.");
+  const paginas=[]; for(let i=0;i<linhas.length;i+=45) paginas.push(linhas.slice(i,i+45));
+  const objetos=["", "<< /Type /Catalog /Pages 2 0 R >>", "", "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"];
+  const idsPaginas=[];
+  paginas.forEach((pagina,indice)=>{
+    const idPagina=objetos.length, idConteudo=idPagina+1; idsPaginas.push(idPagina);
+    const comandos=[`BT /F1 16 Tf 42 806 Td (${escaparTextoPDF(textoPDF("Programação Operacional 4º RPMon"))}) Tj ET`,`BT /F1 10 Tf 42 788 Td (${escaparTextoPDF(textoPDF(titulo))}) Tj ET`];
+    pagina.forEach((linha,posicao)=>comandos.push(`BT /F1 9 Tf 42 ${766-posicao*16} Td (${escaparTextoPDF(linha)}) Tj ET`));
+    const stream=comandos.join("\n");
+    objetos.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents ${idConteudo} 0 R >>`);
+    objetos.push(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
+  });
+  objetos[2]=`<< /Type /Pages /Kids [${idsPaginas.map(id=>`${id} 0 R`).join(" ")}] /Count ${idsPaginas.length} >>`;
+  let pdf="%PDF-1.4\n", offsets=[0];
+  for(let id=1;id<objetos.length;id++){ offsets[id]=pdf.length; pdf+=`${id} 0 obj\n${objetos[id]}\nendobj\n`; }
+  const inicioXref=pdf.length; pdf+=`xref\n0 ${objetos.length}\n0000000000 65535 f \n`;
+  for(let id=1;id<objetos.length;id++) pdf+=`${String(offsets[id]).padStart(10,"0")} 00000 n \n`;
+  pdf+=`trailer\n<< /Size ${objetos.length} /Root 1 0 R >>\nstartxref\n${inicioXref}\n%%EOF`;
+  return new Blob([pdf],{type:"application/pdf"});
+}
+
+window.exportarPDF=function(){
   try{
-    const JsPDF=await carregarJsPDF(), pdf=new JsPDF({unit:"mm",format:"a4"});
-    const {titulo}=intervaloVisualizacao(); let y=20;
-    pdf.setFont("helvetica","bold"); pdf.setFontSize(16); pdf.text("Programação Operacional 4º RPMon",15,y); y+=8;
-    pdf.setFont("helvetica","normal"); pdf.setFontSize(10); pdf.text(titulo,15,y); y+=10;
-    eventosFiltradosAtuais.forEach(e=>{
-      const linhas=pdf.splitTextToSize(`${formatarData(obterDataInicial(e))} · ${formatarPeriodoHorario(e)}\n${e.nome}\n${[e.tipo,obterTextoEsquadrao(obterEsquadrao(e)),e.local,e.municipio,e.efetivo,e.ordemServico,e.observacoes].filter(Boolean).join(" · ")}`,180);
-      if(y+linhas.length*5>282){ pdf.addPage(); y=18; }
-      pdf.setFont("helvetica","bold"); pdf.text(linhas[0],15,y); y+=5; pdf.setFont("helvetica","normal");
-      linhas.slice(1).forEach(l=>{ pdf.text(l,15,y); y+=5; }); y+=4;
-    });
-    pdf.save(`agenda-4rpmon-${dataLocalISO()}.pdf`);
-  }catch{ alert("Não foi possível gerar o PDF. Verifique sua conexão e tente novamente."); }
+    const botao=document.querySelector('button[onclick="exportarPDF()"]'), textoOriginal=botao?.textContent;
+    const {titulo}=intervaloVisualizacao(), url=URL.createObjectURL(criarPDFAgenda(titulo)), link=document.createElement("a");
+    link.href=url; link.download=`agenda-4rpmon-${dataLocalISO()}.pdf`; document.body.appendChild(link); link.click(); link.remove();
+    if(botao){ botao.textContent="PDF gerado"; botao.disabled=true; setTimeout(()=>{ botao.textContent=textoOriginal; botao.disabled=false; },1800); }
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }catch(erro){ console.error("Falha ao gerar PDF",erro); alert("Não foi possível gerar o PDF. Atualize a página e tente novamente."); }
 };
 
 window.imprimirAgenda=function(){ window.print(); };
