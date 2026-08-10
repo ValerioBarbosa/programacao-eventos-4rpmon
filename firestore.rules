@@ -2,21 +2,27 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    function autenticado() {
-      return request.auth != null;
+    function administradorP3() {
+      return request.auth != null
+        && request.auth.token.email == '4rpmon-p3@bm.rs.gov.br';
     }
 
     function eventoValido() {
-      return (("dataInicial" in request.resource.data && request.resource.data.dataInicial is string)
-        || ("data" in request.resource.data && request.resource.data.data is string))
-        && request.resource.data.nome is string
+      return request.resource.data.nome is string
         && request.resource.data.nome.size() > 0
-        && (!("esquadrao" in request.resource.data) || request.resource.data.esquadrao in ['1', '2']);
+        && (
+          request.resource.data.dataInicial is string
+          || request.resource.data.data is string
+        )
+        && (
+          !('esquadrao' in request.resource.data)
+          || request.resource.data.esquadrao in ['1', '2']
+        );
     }
 
     match /eventos/{eventoId} {
       allow read: if true;
-      allow create, update: if autenticado() && eventoValido();
+      allow create, update: if administradorP3() && eventoValido();
       allow delete: if false;
     }
 
