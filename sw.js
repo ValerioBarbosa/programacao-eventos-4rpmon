@@ -1,10 +1,10 @@
-const CACHE_NAME = "agenda-4rpmon-v3";
+const CACHE_NAME = "agenda-4rpmon-v4";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./admin.html",
   "./style.css?v=20260809-3",
-  "./app.js?v=20260809-3",
+  "./app.js?v=20260810-4",
   "./firebase-config.js",
   "./manifest.webmanifest",
   "./image.png",
