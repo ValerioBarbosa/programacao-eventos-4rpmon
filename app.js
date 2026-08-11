@@ -190,7 +190,7 @@ function sincronizarOpcoesAno(){
 
 function atualizarConfiguracaoAno({preservarData=false}={}){
   const inicio=`${ano}-01-01`, fim=`${ano}-12-31`;
-  [dataReferencia,$("dataInicial"),$("dataFinal")].forEach(campo=>{
+  [dataReferencia,$("dataInicial")].forEach(campo=>{
     if(!campo) return;
     campo.min=inicio; campo.max=fim;
   });
@@ -428,7 +428,7 @@ function renderizar(){
 }
 
 function lerFormulario(){
-  const dataInicial=$("dataInicial")?.value, dataFinal=$("dataFinal")?.value || dataInicial;
+  const dataInicial=$("dataInicial")?.value, dataFinal=dataInicial;
   return {
     dataInicial,dataFinal,horaInicial:$("horaInicial")?.value||"",horaFinal:$("horaFinal")?.value||"",
     nome:$("nomeEvento")?.value.trim()||"",local:$("localEvento")?.value.trim()||"",
@@ -439,10 +439,8 @@ function lerFormulario(){
 }
 
 function validarEvento(dados){
-  if(!dados.dataInicial || !dados.nome) return "Informe a data inicial e o nome do evento.";
-  if(!dados.dataInicial.startsWith(`${ano}-`) || !dados.dataFinal.startsWith(`${ano}-`)) return `As datas devem pertencer a ${ano}.`;
-  if(dados.dataFinal < dados.dataInicial) return "A data final não pode ser anterior à inicial.";
-  if(dados.dataInicial===dados.dataFinal && dados.horaInicial && dados.horaFinal && dados.horaFinal<dados.horaInicial) return "O horário final não pode ser anterior ao inicial.";
+  if(!dados.dataInicial || !dados.nome) return "Informe a data e o nome do evento.";
+  if(!dados.dataInicial.startsWith(`${ano}-`)) return `A data deve pertencer a ${ano}.`;
   return "";
 }
 
@@ -491,7 +489,7 @@ window.salvarEvento=async function(){
 
 window.iniciarEdicao=function(id){
   if(!modoP3) return; const e=eventos.find(item=>item.id===id); if(!e) return; eventoEmEdicaoId=id;
-  const valores={dataInicial:obterDataInicial(e),dataFinal:obterDataFinal(e),horaInicial:obterHoraInicial(e),horaFinal:obterHoraFinal(e),nomeEvento:e.nome||"",localEvento:e.local||"",municipioEvento:e.municipio||"",ordemServicoEvento:e.ordemServico||"",efetivoEvento:e.efetivo||"",observacoesEvento:e.observacoes||"",tipoEvento:e.tipo||"POLOST",esquadraoEvento:obterEsquadrao(e)};
+  const valores={dataInicial:obterDataInicial(e),horaInicial:obterHoraInicial(e),horaFinal:obterHoraFinal(e),nomeEvento:e.nome||"",localEvento:e.local||"",municipioEvento:e.municipio||"",ordemServicoEvento:e.ordemServico||"",efetivoEvento:e.efetivo||"",observacoesEvento:e.observacoes||"",tipoEvento:e.tipo||"POLOST",esquadraoEvento:obterEsquadrao(e)};
   Object.entries(valores).forEach(([idCampo,valor])=>{ if($(idCampo)) $(idCampo).value=valor; });
   if(tituloFormulario) tituloFormulario.textContent="Editar evento — P3"; if(botaoSalvar) botaoSalvar.textContent="Salvar alterações";
   areaAdministrativa?.scrollIntoView({behavior:"smooth"});
@@ -499,14 +497,14 @@ window.iniciarEdicao=function(id){
 
 window.duplicarEvento=function(id){
   if(!modoP3) return; const e=eventos.find(item=>item.id===id); if(!e) return; cancelarEdicao();
-  const valores={dataInicial:obterDataInicial(e),dataFinal:obterDataFinal(e),horaInicial:obterHoraInicial(e),horaFinal:obterHoraFinal(e),nomeEvento:`${e.nome||"Evento"} (cópia)`,localEvento:e.local||"",municipioEvento:e.municipio||"",ordemServicoEvento:e.ordemServico||"",efetivoEvento:e.efetivo||"",observacoesEvento:e.observacoes||"",tipoEvento:e.tipo||"POLOST",esquadraoEvento:obterEsquadrao(e)};
+  const valores={dataInicial:obterDataInicial(e),horaInicial:obterHoraInicial(e),horaFinal:obterHoraFinal(e),nomeEvento:`${e.nome||"Evento"} (cópia)`,localEvento:e.local||"",municipioEvento:e.municipio||"",ordemServicoEvento:e.ordemServico||"",efetivoEvento:e.efetivo||"",observacoesEvento:e.observacoes||"",tipoEvento:e.tipo||"POLOST",esquadraoEvento:obterEsquadrao(e)};
   Object.entries(valores).forEach(([idCampo,valor])=>{ if($(idCampo)) $(idCampo).value=valor; });
   if(mensagem) mensagem.textContent="Cópia preparada. Revise os dados e clique em Adicionar."; areaAdministrativa?.scrollIntoView({behavior:"smooth"});
 };
 
 function cancelarEdicao(){
   eventoEmEdicaoId=null;
-  ["dataInicial","dataFinal","horaInicial","horaFinal","nomeEvento","localEvento","municipioEvento","ordemServicoEvento","efetivoEvento","observacoesEvento"].forEach(id=>{ if($(id)) $(id).value=""; });
+  ["dataInicial","horaInicial","horaFinal","nomeEvento","localEvento","municipioEvento","ordemServicoEvento","efetivoEvento","observacoesEvento"].forEach(id=>{ if($(id)) $(id).value=""; });
   if($("esquadraoEvento")) $("esquadraoEvento").value="1";
   if(tituloFormulario) tituloFormulario.textContent="Adicionar evento — P3"; if(botaoSalvar) botaoSalvar.textContent="Adicionar";
 }
