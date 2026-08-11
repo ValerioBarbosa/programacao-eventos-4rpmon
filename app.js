@@ -419,7 +419,7 @@ function renderizar(){
       card.addEventListener("click",()=>window.abrirDetalhesEvento(e.id));
       const localMapa=obterLocalCompleto(e);
       const acoesPublicas=`<div class="acoes-publicas"><button type="button" onclick="event.stopPropagation(); abrirDetalhesEvento('${e.id}')">Detalhes</button><button type="button" onclick="event.stopPropagation(); copiarLinkEvento('${e.id}')">Copiar link</button><button type="button" class="botao-secundario" onclick="event.stopPropagation(); adicionarEventoCalendario('${e.id}')">Calendário</button><button type="button" class="botao-whatsapp" onclick="event.stopPropagation(); compartilharEventoWhatsApp('${e.id}')">WhatsApp</button>${localMapa?`<button type="button" class="botao-mapa" onclick="event.stopPropagation(); abrirMapaEvento('${e.id}')">Mapa</button>`:""}</div>`;
-      const acoes=modoP3&&areaAdministrativa?`<div class="acoes-card"><button class="botao-editar" onclick="event.stopPropagation(); iniciarEdicao('${e.id}')">Editar</button><button class="botao-secundario" onclick="event.stopPropagation(); duplicarEvento('${e.id}')">Duplicar</button><button class="botao-excluir" onclick="event.stopPropagation(); arquivarEvento('${e.id}')">Arquivar</button></div>`:"";
+      const acoes=modoP3&&areaAdministrativa?`<div class="acoes-card"><button class="botao-editar" onclick="event.stopPropagation(); iniciarEdicao('${e.id}')">Editar</button><button class="botao-secundario" onclick="event.stopPropagation(); duplicarEvento('${e.id}')">Duplicar</button><button class="botao-excluir" type="button" title="Excluir cartão" aria-label="Excluir cartão" onclick="event.stopPropagation(); excluirEvento('${e.id}')">Excluir</button></div>`:"";
       card.innerHTML=`${data===hoje?'<span class="selo-hoje">Hoje</span>':""}<div class="evento-topo"><span class="evento-data">${escaparHTML(formatarPeriodoHorario(e))}</span><span class="evento-tipo">${escaparHTML(e.tipo||"Outros")}</span></div><span class="evento-esquadrao">${escaparHTML(obterTextoEsquadrao(obterEsquadrao(e)))}</span><div class="evento-nome">${escaparHTML(e.nome)}</div><div class="evento-local">${escaparHTML(e.local||"")}</div><div class="evento-metadados">${metadado("Município",e.municipio)}${metadado("OSv/NSv",e.ordemServico)}${metadado("Efetivo",e.efetivo)}${metadado("Observações",e.observacoes)}</div>${acoesPublicas}${acoes}`;
       grade.appendChild(card);
     });
@@ -509,13 +509,13 @@ function cancelarEdicao(){
   if(tituloFormulario) tituloFormulario.textContent="Adicionar evento — P3"; if(botaoSalvar) botaoSalvar.textContent="Adicionar";
 }
 
-window.arquivarEvento=async function(id){
-  if(!modoP3) return; const e=eventos.find(item=>item.id===id); if(!e || !confirm(`Arquivar “${e.nome}”? O registro sairá da agenda e permanecerá na auditoria.`)) return;
-  const usuario=usuarioAtual(), instante=agoraISO(), historico=[...(e.historico||[]),{acao:"arquivado",em:instante,por:usuario.email,uid:usuario.uid}];
+window.excluirEvento=async function(id){
+  if(!modoP3) return; const e=eventos.find(item=>item.id===id); if(!e || !confirm(`Excluir o cartão “${e.nome}” da agenda? O registro permanecerá disponível na auditoria.`)) return;
+  const usuario=usuarioAtual(), instante=agoraISO(), historico=[...(e.historico||[]),{acao:"excluído",em:instante,por:usuario.email,uid:usuario.uid}];
   try{ await updateDoc(doc(db,"eventos",id),{excluido:true,excluidoEm:serverTimestamp(),excluidoEmISO:instante,excluidoPor:usuario.email,historico}); }
-  catch{ alert("Não foi possível arquivar o evento."); }
+  catch{ alert("Não foi possível excluir o cartão."); }
 };
-window.excluirEvento=window.arquivarEvento;
+window.arquivarEvento=window.excluirEvento;
 
 window.alternarImportacao=function(){
   if(!modoP3 || !areaImportacao) return; areaImportacao.style.display=areaImportacao.style.display==="none"?"block":"none";
@@ -587,13 +587,13 @@ function renderizarAuditoria(){
   const lista=$("listaAuditoria"); if(!lista) return;
   const termo=normalizar($("filtroAuditoriaTexto")?.value||""), status=$("filtroAuditoriaStatus")?.value||"todos";
   const ordenados=eventos.filter(e=>{
-    if(status==="ativos"&&e.excluido) return false; if(status==="arquivados"&&!e.excluido) return false;
+    if(status==="ativos"&&e.excluido) return false; if(status==="excluidos"&&!e.excluido) return false;
     const historico=e.historico||[]; const conteudo=normalizar(`${e.nome} ${e.criadoPor} ${e.atualizadoPor} ${historico.map(h=>`${h.acao} ${h.por} ${(h.camposAlterados||[]).join(" ")}`).join(" ")}`);
     return !termo||conteudo.includes(termo);
   }).sort((a,b)=>String(b.excluidoEmISO||b.atualizadoEmISO||b.criadoEmISO||"").localeCompare(String(a.excluidoEmISO||a.atualizadoEmISO||a.criadoEmISO||"")));
   lista.innerHTML=ordenados.length?ordenados.map(e=>{
     const historico=e.historico||[{acao:"registro legado",em:e.atualizadoEmISO||e.criadoEmISO||"",por:e.atualizadoPor||e.criadoPor||"não registrado"}];
-    return `<details class="item-auditoria"><summary><div><strong>${escaparHTML(e.nome||"Evento sem nome")}</strong><span>${formatarData(obterDataInicial(e))} · ${e.excluido?"Arquivado":"Ativo"}</span></div><span>${historico.length} ações</span></summary><ol>${historico.slice().reverse().map(h=>`<li><b>${escaparHTML(h.acao)}</b> por ${escaparHTML(h.por)}${h.camposAlterados?.length?`<small>Campos: ${escaparHTML(h.camposAlterados.join(", "))}</small>`:""}<time>${h.em?new Date(h.em).toLocaleString("pt-BR"):"data não registrada"}</time></li>`).join("")}</ol></details>`;
+    return `<details class="item-auditoria"><summary><div><strong>${escaparHTML(e.nome||"Evento sem nome")}</strong><span>${formatarData(obterDataInicial(e))} · ${e.excluido?"Excluído":"Ativo"}</span></div><span>${historico.length} ações</span></summary><ol>${historico.slice().reverse().map(h=>`<li><b>${escaparHTML(h.acao)}</b> por ${escaparHTML(h.por)}${h.camposAlterados?.length?`<small>Campos: ${escaparHTML(h.camposAlterados.join(", "))}</small>`:""}<time>${h.em?new Date(h.em).toLocaleString("pt-BR"):"data não registrada"}</time></li>`).join("")}</ol></details>`;
   }).join(""):'<div class="sem-eventos">Nenhum histórico disponível.</div>';
 }
 
