@@ -664,8 +664,37 @@ textarea:focus {
 }
 
 .formulario h2 {
-  margin-bottom: 14px;
+  margin: 0;
   font-size: 1.1rem;
+}
+
+.cabecalho-formulario {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.fechar-edicao {
+  flex: 0 0 38px;
+  width: 38px;
+  min-height: 38px;
+  padding: 0;
+  color: #31475d;
+  background: #e8eef3;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.acoes-formulario {
+  display: flex;
+  gap: 8px;
+}
+
+.acoes-formulario button {
+  flex: 1;
 }
 
 .form-grid {
@@ -1376,6 +1405,34 @@ body {
   overflow: hidden;
 }
 
+.modal-edicao {
+  width: min(980px, calc(100% - 36px));
+  max-width: none;
+  max-height: calc(100vh - 36px);
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+  border: 0;
+}
+
+.modal-edicao::backdrop {
+  background: rgba(8, 18, 29, 0.76);
+  backdrop-filter: blur(5px);
+}
+
+.modal-edicao .formulario {
+  max-height: calc(100vh - 36px);
+  margin: 0;
+  overflow-y: auto;
+  border: 0;
+  border-radius: 18px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.32);
+}
+
+.modal-edicao .form-grid {
+  grid-template-columns: repeat(3, minmax(160px, 1fr));
+}
+
 .modal-evento {
   z-index: 120;
   padding: 18px;
@@ -1468,6 +1525,10 @@ body {
   .grade-indicadores {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .modal-edicao .form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 700px) {
@@ -1488,8 +1549,23 @@ body {
   .grade-indicadores,
   .quebra-indicadores,
   .filtros-auditoria,
-  .detalhes-grid {
+  .detalhes-grid,
+  .modal-edicao .form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .modal-edicao {
+    width: calc(100% - 20px);
+    max-height: calc(100vh - 20px);
+  }
+
+  .modal-edicao .formulario {
+    max-height: calc(100vh - 20px);
+    padding: 16px;
+  }
+
+  .acoes-formulario {
+    flex-direction: column-reverse;
   }
 
   .indicador-operacional {
