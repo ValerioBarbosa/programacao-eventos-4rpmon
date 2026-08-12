@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="style.css?v=20260809-3">
+<link rel="stylesheet" href="style.css?v=20260812-1">
 </head>
 <body>
 <header>
@@ -133,8 +133,12 @@ Modo P3 ativo
 <h2 class="titulo-mes" id="tituloMes">Agosto de 2026</h2>
 <section class="grade-eventos" id="listaEventos"></section>
 
+<div id="ancoraFormularioAdministrativo" aria-hidden="true"></div>
 <section class="formulario" id="areaAdministrativa" style="display:none;">
+<div class="cabecalho-formulario">
 <h2 id="tituloFormulario">Adicionar evento — P3</h2>
+<button class="fechar-edicao" id="botaoFecharEdicao" type="button" aria-label="Fechar edição" title="Fechar edição" hidden>×</button>
+</div>
 <div class="form-grid">
 <div class="campo">
 <label for="dataInicial">Data</label>
@@ -198,10 +202,14 @@ Modo P3 ativo
 <option value="2">2º Esquadrão</option>
 </select>
 </div>
-<button id="botaoSalvar" onclick="salvarEvento()">Adicionar</button>
+<div class="acoes-formulario">
+<button id="botaoCancelarEdicao" class="botao-cancelar" type="button" hidden>Cancelar</button>
+<button id="botaoSalvar" type="button" onclick="salvarEvento()">Adicionar</button>
+</div>
 </div>
 <div class="mensagem" id="mensagem"></div>
 </section>
+<dialog class="modal-edicao" id="modalEdicaoEvento" aria-labelledby="tituloFormulario"></dialog>
 
 <section class="formulario importacao-lote" id="areaImportacao" style="display:none;">
 <div class="cabecalho-secao">
@@ -254,6 +262,6 @@ Modo P3 ativo
 </div>
 </div>
 
-<script type="module" src="app.js?v=20260811-2"></script>
+<script type="module" src="app.js?v=20260812-1"></script>
 </body>
 </html>

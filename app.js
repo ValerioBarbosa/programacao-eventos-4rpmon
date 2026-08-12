@@ -25,6 +25,7 @@ let modoP3 = false;
 let primeiraCargaConcluida = false;
 let debounceId = null;
 let ultimoElementoComFoco = null;
+let ultimoElementoComFocoEdicao = null;
 let mostrarPassados = false;
 let promptInstalacao = null;
 let eventoDetalhePendente = new URLSearchParams(window.location.search).get("evento");
@@ -56,6 +57,10 @@ const campoEmail = $("campoEmail");
 const campoSenha = $("campoSenha");
 const tituloFormulario = $("tituloFormulario");
 const botaoSalvar = $("botaoSalvar");
+const botaoCancelarEdicao = $("botaoCancelarEdicao");
+const botaoFecharEdicao = $("botaoFecharEdicao");
+const modalEdicaoEvento = $("modalEdicaoEvento");
+const ancoraFormularioAdministrativo = $("ancoraFormularioAdministrativo");
 const gradeIndicadores = $("gradeIndicadores");
 const quebraIndicadores = $("quebraIndicadores");
 const atualizacaoIndicadores = $("atualizacaoIndicadores");
@@ -492,7 +497,14 @@ window.iniciarEdicao=function(id){
   const valores={dataInicial:obterDataInicial(e),horaInicial:obterHoraInicial(e),horaFinal:obterHoraFinal(e),nomeEvento:e.nome||"",localEvento:e.local||"",municipioEvento:e.municipio||"",ordemServicoEvento:e.ordemServico||"",efetivoEvento:e.efetivo||"",observacoesEvento:e.observacoes||"",tipoEvento:e.tipo||"POLOST",esquadraoEvento:obterEsquadrao(e)};
   Object.entries(valores).forEach(([idCampo,valor])=>{ if($(idCampo)) $(idCampo).value=valor; });
   if(tituloFormulario) tituloFormulario.textContent="Editar evento — P3"; if(botaoSalvar) botaoSalvar.textContent="Salvar alterações";
-  areaAdministrativa?.scrollIntoView({behavior:"smooth"});
+  if(botaoCancelarEdicao) botaoCancelarEdicao.hidden=false; if(botaoFecharEdicao) botaoFecharEdicao.hidden=false;
+  if(modalEdicaoEvento&&areaAdministrativa){
+    ultimoElementoComFocoEdicao=document.activeElement;
+    modalEdicaoEvento.appendChild(areaAdministrativa); areaAdministrativa.style.display="block";
+    if(!modalEdicaoEvento.open) modalEdicaoEvento.showModal();
+    document.body.classList.add("modal-aberto");
+    $("dataInicial")?.focus();
+  }
 };
 
 window.duplicarEvento=function(id){
@@ -507,7 +519,19 @@ function cancelarEdicao(){
   ["dataInicial","horaInicial","horaFinal","nomeEvento","localEvento","municipioEvento","ordemServicoEvento","efetivoEvento","observacoesEvento"].forEach(id=>{ if($(id)) $(id).value=""; });
   if($("esquadraoEvento")) $("esquadraoEvento").value="1";
   if(tituloFormulario) tituloFormulario.textContent="Adicionar evento — P3"; if(botaoSalvar) botaoSalvar.textContent="Adicionar";
+  if(botaoCancelarEdicao) botaoCancelarEdicao.hidden=true; if(botaoFecharEdicao) botaoFecharEdicao.hidden=true;
+  if(modalEdicaoEvento?.open) modalEdicaoEvento.close();
+  if(ancoraFormularioAdministrativo&&areaAdministrativa) ancoraFormularioAdministrativo.after(areaAdministrativa);
+  if(areaAdministrativa) areaAdministrativa.style.display=modoP3?"block":"none";
+  document.body.classList.remove("modal-aberto");
+  ultimoElementoComFocoEdicao?.focus(); ultimoElementoComFocoEdicao=null;
 }
+window.cancelarEdicao=cancelarEdicao;
+
+botaoCancelarEdicao?.addEventListener("click",cancelarEdicao);
+botaoFecharEdicao?.addEventListener("click",cancelarEdicao);
+modalEdicaoEvento?.addEventListener("cancel",evento=>{ evento.preventDefault(); cancelarEdicao(); });
+modalEdicaoEvento?.addEventListener("click",evento=>{ if(evento.target===modalEdicaoEvento) cancelarEdicao(); });
 
 window.excluirEvento=async function(id){
   if(!modoP3) return; const e=eventos.find(item=>item.id===id); if(!e || !confirm(`Excluir o cartão “${e.nome}” da agenda? O registro permanecerá disponível na auditoria.`)) return;
