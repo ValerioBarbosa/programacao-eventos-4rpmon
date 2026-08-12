@@ -637,54 +637,146 @@ window.compartilharWhatsApp=function(){
 };
 
 function textoPDF(valor){
-  return String(valor||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/º/g,"o").replace(/ª/g,"a").replace(/[–—]/g,"-").replace(/[^\x20-\x7E]/g," ");
+  return String(valor||"").replace(/[–—]/g,"-").replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/\u00a0/g," ").replace(/[^\x20-\xFF]/g," ");
 }
 
-function quebrarLinhaPDF(texto,limite=88){
-  const palavras=textoPDF(texto).trim().split(/\s+/), linhas=[]; let linha="";
-  palavras.forEach(palavra=>{ const candidata=linha?`${linha} ${palavra}`:palavra; if(candidata.length>limite&&linha){ linhas.push(linha); linha=palavra; }else linha=candidata; });
-  if(linha) linhas.push(linha); return linhas;
+function quebrarLinhaPDF(texto,limite=88,maximo=99){
+  const palavras=textoPDF(texto).trim().split(/\s+/).filter(Boolean), linhas=[]; let linha="";
+  palavras.forEach(palavra=>{
+    const candidata=linha?`${linha} ${palavra}`:palavra;
+    if(candidata.length>limite&&linha){ linhas.push(linha); linha=palavra; }else linha=candidata;
+  });
+  if(linha) linhas.push(linha);
+  if(linhas.length>maximo){ linhas.length=maximo; linhas[maximo-1]=`${linhas[maximo-1].slice(0,Math.max(0,limite-3))}...`; }
+  return linhas;
 }
 
-function escaparTextoPDF(texto){ return texto.replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)"); }
+function escaparTextoPDF(texto){ return textoPDF(texto).replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)"); }
+function codificarPDF(texto){ return Uint8Array.from(texto,caractere=>caractere.charCodeAt(0)&255); }
+function numeroPDF(valor){ return Number(valor).toFixed(2).replace(/\.00$/,""); }
+function corPDF(hex){
+  const valor=hex.replace("#","");
+  return [0,2,4].map(i=>numeroPDF(parseInt(valor.slice(i,i+2),16)/255)).join(" ");
+}
+function textoComandoPDF(texto,x,y,tamanho=9,fonte="F1",cor="#24384e"){
+  return `${corPDF(cor)} rg BT /${fonte} ${numeroPDF(tamanho)} Tf 1 0 0 1 ${numeroPDF(x)} ${numeroPDF(y)} Tm (${escaparTextoPDF(texto)}) Tj ET`;
+}
+function retanguloPDF(x,y,largura,altura,corPreenchimento,corBorda="",espessura=1){
+  const preenchimento=corPreenchimento?`${corPDF(corPreenchimento)} rg`:"";
+  const borda=corBorda?`${corPDF(corBorda)} RG ${numeroPDF(espessura)} w`:"";
+  return `${preenchimento} ${borda} ${numeroPDF(x)} ${numeroPDF(y)} ${numeroPDF(largura)} ${numeroPDF(altura)} re ${corPreenchimento&&corBorda?"B":corPreenchimento?"f":"S"}`;
+}
+function dataExtensoPDF(data){
+  if(!data) return "Data não informada";
+  const [a,m,d]=data.split("-").map(Number), dias=["domingo","segunda-feira","terça-feira","quarta-feira","quinta-feira","sexta-feira","sábado"];
+  return `${formatarData(data)} - ${dias[new Date(a,m-1,d).getDay()]}`;
+}
 
 function criarPDFAgenda(titulo){
-  const linhas=[];
-  eventosFiltradosAtuais.forEach(e=>{
-    linhas.push(...quebrarLinhaPDF(`${formatarData(obterDataInicial(e))} | ${formatarPeriodoHorario(e)} | ${e.nome}`));
-    const detalhes=[e.tipo,obterTextoEsquadrao(obterEsquadrao(e)),e.local,e.municipio,e.efetivo,e.ordemServico,e.observacoes].filter(Boolean).join(" | ");
-    if(detalhes) linhas.push(...quebrarLinhaPDF(detalhes));
-    linhas.push("");
-  });
-  if(!linhas.length) linhas.push("Nenhum evento neste periodo.");
-  const paginas=[]; for(let i=0;i<linhas.length;i+=45) paginas.push(linhas.slice(i,i+45));
-  const objetos=["", "<< /Type /Catalog /Pages 2 0 R >>", "", "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"];
+  const larguraPagina=595, alturaPagina=842, margem=36, topoConteudo=706, rodape=36;
+  const paginas=[]; let comandos=[], y=topoConteudo, dataAtual="";
+  const total=eventosFiltradosAtuais.length;
+  const total1=eventosFiltradosAtuais.filter(e=>obterEsquadrao(e)==="1").length;
+  const total2=eventosFiltradosAtuais.filter(e=>obterEsquadrao(e)==="2").length;
+  const quantidades=new Map(); eventosFiltradosAtuais.forEach(e=>quantidades.set(obterDataInicial(e),(quantidades.get(obterDataInicial(e))||0)+1));
+  const emitidoEm=new Date().toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"});
+
+  function cabecalho(){
+    comandos.push(retanguloPDF(0,0,larguraPagina,alturaPagina,"#ffffff"));
+    comandos.push(retanguloPDF(0,754,larguraPagina,88,"#17375e"));
+    comandos.push(retanguloPDF(0,748,larguraPagina,6,"#087443"));
+    comandos.push(`${corPDF("#cf9f35")} rg 39 774 m 52 792 l 65 774 l 62 754 l 52 748 l 42 754 l h f`);
+    comandos.push(textoComandoPDF("4º",45,770,15,"F2","#ffffff"));
+    comandos.push(textoComandoPDF("RPMON",40,758,6.5,"F2","#ffffff"));
+    comandos.push(textoComandoPDF("PROGRAMAÇÃO OPERACIONAL",82,800,9,"F2","#dceafb"));
+    comandos.push(textoComandoPDF("4º Regimento de Polícia Montada",82,779,17,"F2","#ffffff"));
+    comandos.push(textoComandoPDF(textoPDF(titulo),82,762,9,"F1","#dceafb"));
+    comandos.push(retanguloPDF(margem,716,523,24,"#edf3f9","#d5e0eb",0.6));
+    comandos.push(textoComandoPDF(`EVENTOS  ${total}`,48,724,8,"F2","#17375e"));
+    comandos.push(textoComandoPDF(`1º ESQUADRÃO  ${total1}`,180,724,8,"F2","#2563eb"));
+    comandos.push(textoComandoPDF(`2º ESQUADRÃO  ${total2}`,334,724,8,"F2","#c2410c"));
+    comandos.push(textoComandoPDF(`EMISSÃO  ${emitidoEm}`,451,724,7,"F1","#52657a"));
+  }
+  function novaPagina(){ if(comandos.length) paginas.push(comandos); comandos=[]; y=topoConteudo; dataAtual=""; cabecalho(); }
+  function garantirEspaco(altura){ if(y-altura<rodape+18){ novaPagina(); return true; } return false; }
+  function cabecalhoData(data,quantidade,continuacao=false){
+    garantirEspaco(31); y-=29;
+    comandos.push(retanguloPDF(margem,y,523,23,"#f1f5f9","#d5e0eb",0.6));
+    comandos.push(retanguloPDF(margem,y,5,23,"#087443"));
+    comandos.push(textoComandoPDF(`${dataExtensoPDF(data)}${continuacao?" - continuação":""}`,margem+14,y+8,10,"F2","#17375e"));
+    comandos.push(textoComandoPDF(`${quantidade} ${quantidade===1?"evento":"eventos"}`,500,y+8,7.5,"F2","#64748b"));
+    y-=7;
+  }
+  function desenharEvento(e){
+    const nome=quebrarLinhaPDF(e.nome||"Evento sem nome",61,2);
+    const local=quebrarLinhaPDF([e.local,e.municipio].filter(Boolean).join(" - "),79,2);
+    const recursos=quebrarLinhaPDF([e.efetivo,e.ordemServico].filter(Boolean).join(" | "),79,2);
+    const observacoes=quebrarLinhaPDF(e.observacoes||"",79,2);
+    const linhasDetalhe=local.length+recursos.length+observacoes.length;
+    const altura=48+(nome.length-1)*11+linhasDetalhe*9;
+    if(garantirEspaco(altura+8)){
+      dataAtual=obterDataInicial(e);
+      cabecalhoData(dataAtual,quantidades.get(dataAtual)||1,true);
+    }
+    const base=y-altura, esq=obterEsquadrao(e), corEsq=esq==="2"?"#f97316":"#2563eb";
+    comandos.push(retanguloPDF(margem,base,523,altura,"#ffffff","#d9e0e6",0.7));
+    comandos.push(retanguloPDF(margem,base,5,altura,corEsq));
+    comandos.push(retanguloPDF(margem+14,y-28,72,20,"#edf3f9"));
+    comandos.push(textoComandoPDF(formatarPeriodoHorario(e),margem+21,y-21,8.3,"F2","#17375e"));
+    nome.forEach((linha,i)=>comandos.push(textoComandoPDF(linha,margem+98,y-20-i*11,10.5,"F2","#172033")));
+    comandos.push(textoComandoPDF(obterTextoEsquadrao(esq),margem+14,y-42-(nome.length-1)*11,7.5,"F2",corEsq));
+    comandos.push(textoComandoPDF(e.tipo||"Outros",margem+105,y-42-(nome.length-1)*11,7.5,"F2","#64748b"));
+    let linhaY=y-55-(nome.length-1)*11;
+    const detalhe=(rotulo,linhas)=>{ linhas.forEach((linha,i)=>{ comandos.push(textoComandoPDF(i?linha:`${rotulo}: ${linha}`,margem+14,linhaY,7.7,i?"F1":"F2",i?"#52657a":"#24384e")); linhaY-=9; }); };
+    detalhe("LOCAL",local); detalhe("EFETIVO / OSV",recursos); detalhe("OBSERVAÇÕES",observacoes);
+    y=base-8;
+  }
+
+  cabecalho();
+  if(!total){
+    comandos.push(retanguloPDF(margem,610,523,70,"#f8fafc","#d5e0eb",0.8));
+    comandos.push(textoComandoPDF("Nenhum evento encontrado para o período selecionado.",68,642,11,"F2","#52657a"));
+  }else{
+    eventosFiltradosAtuais.forEach(e=>{
+      const data=obterDataInicial(e);
+      if(data!==dataAtual){ dataAtual=data; cabecalhoData(data,quantidades.get(data)); }
+      desenharEvento(e);
+    });
+  }
+  paginas.push(comandos);
+
+  const objetos=["","<< /Type /Catalog /Pages 2 0 R >>","","<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>","<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>"];
   const idsPaginas=[];
   paginas.forEach((pagina,indice)=>{
-    const idPagina=objetos.length, idConteudo=idPagina+1; idsPaginas.push(idPagina);
-    const comandos=[`BT /F1 16 Tf 42 806 Td (${escaparTextoPDF(textoPDF("Programação Operacional 4º RPMon"))}) Tj ET`,`BT /F1 10 Tf 42 788 Td (${escaparTextoPDF(textoPDF(titulo))}) Tj ET`];
-    pagina.forEach((linha,posicao)=>comandos.push(`BT /F1 9 Tf 42 ${766-posicao*16} Td (${escaparTextoPDF(linha)}) Tj ET`));
-    const stream=comandos.join("\n");
-    objetos.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents ${idConteudo} 0 R >>`);
+    pagina.push(`${corPDF("#d5e0eb")} RG 0.6 w ${margem} 29 m 559 29 l S`);
+    pagina.push(textoComandoPDF("Programação Operacional 4º RPMon",margem,17,7,"F1","#64748b"));
+    pagina.push(textoComandoPDF(`Página ${indice+1} de ${paginas.length}`,500,17,7,"F2","#52657a"));
+    const idPagina=objetos.length, idConteudo=idPagina+1, stream=pagina.join("\n"); idsPaginas.push(idPagina);
+    objetos.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${idConteudo} 0 R >>`);
     objetos.push(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
   });
   objetos[2]=`<< /Type /Pages /Kids [${idsPaginas.map(id=>`${id} 0 R`).join(" ")}] /Count ${idsPaginas.length} >>`;
-  let pdf="%PDF-1.4\n", offsets=[0];
+  let pdf="%PDF-1.4\n%Agenda4RPMon\n", offsets=[0];
   for(let id=1;id<objetos.length;id++){ offsets[id]=pdf.length; pdf+=`${id} 0 obj\n${objetos[id]}\nendobj\n`; }
   const inicioXref=pdf.length; pdf+=`xref\n0 ${objetos.length}\n0000000000 65535 f \n`;
   for(let id=1;id<objetos.length;id++) pdf+=`${String(offsets[id]).padStart(10,"0")} 00000 n \n`;
   pdf+=`trailer\n<< /Size ${objetos.length} /Root 1 0 R >>\nstartxref\n${inicioXref}\n%%EOF`;
-  return new Blob([pdf],{type:"application/pdf"});
+  return new Blob([codificarPDF(pdf)],{type:"application/pdf"});
 }
 
 window.exportarPDF=function(){
+  const botao=document.querySelector('button[onclick="exportarPDF()"]'), textoOriginal=botao?.textContent;
   try{
-    const botao=document.querySelector('button[onclick="exportarPDF()"]'), textoOriginal=botao?.textContent;
+    if(botao){ botao.textContent="Gerando PDF..."; botao.disabled=true; }
     const {titulo}=intervaloVisualizacao(), url=URL.createObjectURL(criarPDFAgenda(titulo)), link=document.createElement("a");
-    link.href=url; link.download=`agenda-4rpmon-${dataLocalISO()}.pdf`; document.body.appendChild(link); link.click(); link.remove();
-    if(botao){ botao.textContent="PDF gerado"; botao.disabled=true; setTimeout(()=>{ botao.textContent=textoOriginal; botao.disabled=false; },1800); }
+    const periodo=textoPDF(titulo).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,42);
+    link.href=url; link.download=`programacao-4rpmon-${periodo||dataLocalISO()}.pdf`; document.body.appendChild(link); link.click(); link.remove();
+    if(botao){ botao.textContent="PDF gerado"; setTimeout(()=>{ botao.textContent=textoOriginal; botao.disabled=false; },1800); }
     setTimeout(()=>URL.revokeObjectURL(url),1000);
-  }catch(erro){ console.error("Falha ao gerar PDF",erro); alert("Não foi possível gerar o PDF. Atualize a página e tente novamente."); }
+  }catch(erro){
+    if(botao){ botao.textContent=textoOriginal; botao.disabled=false; }
+    console.error("Falha ao gerar PDF",erro); alert("Não foi possível gerar o PDF. Atualize a página e tente novamente.");
+  }
 };
 
 window.imprimirAgenda=function(){ window.print(); };
