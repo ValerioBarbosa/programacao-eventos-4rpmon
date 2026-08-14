@@ -279,15 +279,36 @@ function intervaloVisualizacao(){
 }
 
 function contarNoIntervalo(lista,inicio,fim){ return lista.filter(e=>eventoNoIntervalo(e,inicio,fim)).length; }
+
+function contabilizarEfetivo(lista=[]){
+  const totais={conjuntos:0,mes:0,equinos:0};
+  const padroes=[
+    ["conjuntos",/(\d+)\s*conj(?:unto)?s?\b/gi],
+    ["mes",/(\d+)\s*(?:m\.?\s*e\.?s?|militares?\s+estaduais?)\b/gi],
+    ["equinos",/(\d+)\s*(?:equinos?|cavalos?)\b/gi]
+  ];
+  lista.forEach(evento=>{
+    const texto=String(evento.efetivo||"");
+    padroes.forEach(([categoria,padrao])=>{
+      for(const correspondencia of texto.matchAll(padrao)) totais[categoria]+=Number(correspondencia[1])||0;
+    });
+  });
+  return totais;
+}
+
 function renderizarIndicadores(filtrados=[]){
   if(!gradeIndicadores || !quebraIndicadores) return;
   const ativos=eventos.filter(e=>!e.excluido&&obterDataInicial(e));
   const hoje=dataLocalISO(), diaSemana=new Date(`${hoje}T12:00:00`).getDay()||7, inicioSemana=somarDias(hoje,1-diaSemana), fimSemana=somarDias(inicioSemana,6), fim30=somarDias(hoje,29);
+  const efetivo=contabilizarEfetivo(filtrados);
   const cards=[
     ["Hoje",contarNoIntervalo(ativos,hoje,hoje),"eventos no dia"],
     ["Esta semana",contarNoIntervalo(ativos,inicioSemana,fimSemana),`${formatarData(inicioSemana)} a ${formatarData(fimSemana)}`],
     ["Próximos 30 dias",contarNoIntervalo(ativos,hoje,fim30),`até ${formatarData(fim30)}`],
-    ["Resultado atual",filtrados.length,"após período e filtros"]
+    ["Resultado atual",filtrados.length,"após período e filtros"],
+    ["Conjuntos empregados",efetivo.conjuntos,"soma do campo Efetivo"],
+    ["MEs empregados",efetivo.mes,"soma do campo Efetivo"],
+    ["Equinos empregados",efetivo.equinos,"soma do campo Efetivo"]
   ];
   gradeIndicadores.innerHTML=cards.map(([rotulo,valor,detalhe])=>`<article class="indicador-operacional"><span>${escaparHTML(rotulo)}</span><strong>${valor}</strong><small>${escaparHTML(detalhe)}</small></article>`).join("");
   const esquadroes={"1":0,"2":0}, tipos=new Map();
