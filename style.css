@@ -199,7 +199,6 @@ header {
   align-items: center;
   justify-content: center;
   background: transparent;
-  filter: drop-shadow(0 5px 5px rgba(0, 0, 0, 0.34));
   overflow: visible;
 }
 
@@ -214,6 +213,7 @@ header {
   height: 100%;
   object-fit: contain;
   transform: scale(1.38);
+  filter: drop-shadow(0 5px 5px rgba(0, 0, 0, 0.34));
   mix-blend-mode: multiply;
 }
 
@@ -1713,6 +1713,7 @@ body {
 
   .brasao img {
     transform: none;
+    filter: none;
     mix-blend-mode: normal;
   }
 
