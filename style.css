@@ -138,9 +138,9 @@ button:disabled {
 
 header {
   width: 100%;
-  background: linear-gradient(135deg, var(--verde-escuro), var(--verde));
   color: var(--branco);
-  padding: 22px 18px;
+  background: var(--branco);
+  padding: 10px 10px 0;
 }
 
 .container {
@@ -155,16 +155,33 @@ header {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 0;
   width: 100%;
   text-align: center;
+  background: var(--branco);
+  border: 1px solid rgba(7, 85, 47, 0.12);
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
+
+.faixa-identidade {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 132px;
+  padding: 16px 28px;
+  background:
+    radial-gradient(circle at 72% 42%, rgba(18, 112, 68, 0.28), transparent 32%),
+    linear-gradient(120deg, #012a19 0%, #003d25 56%, #073a26 100%);
 }
 
 .identidade {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 18px;
   min-width: 0;
 }
 
@@ -174,27 +191,20 @@ header {
 }
 
 .brasao {
-  position: relative;
-  width: 92px;
-  height: 104px;
+  width: 84px;
+  height: 98px;
   padding: 0;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   background: transparent;
-  filter: drop-shadow(0 9px 10px rgba(0, 0, 0, 0.28));
+  filter: drop-shadow(0 5px 5px rgba(0, 0, 0, 0.34));
   overflow: visible;
 }
 
 .brasao::before {
-  position: absolute;
-  inset: 12% 8%;
-  z-index: 0;
-  content: "";
-  background: rgba(207, 159, 53, 0.2);
-  border-radius: 48%;
-  filter: blur(12px);
+  display: none;
 }
 
 .brasao img {
@@ -203,13 +213,15 @@ header {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  transform: scale(1.42);
+  transform: scale(1.38);
   mix-blend-mode: multiply;
 }
 
 h1 {
-  font-size: clamp(1.3rem, 4vw, 2.1rem);
-  line-height: 1.2;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.45rem, 3.4vw, 2.15rem);
+  line-height: 1.15;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   overflow-wrap: anywhere;
 }
 
@@ -228,21 +240,25 @@ h1 {
   justify-content: center;
   gap: 10px;
   width: 100%;
+  padding: 12px 16px;
+  color: var(--azul);
+  background: var(--branco);
+  border-top: 1px solid #e5e9ec;
 }
 
 .mes-cabecalho {
   min-width: 190px;
   padding: 10px 14px;
   text-align: center;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: #f7f9f8;
+  border: 1px solid #dfe7e2;
   border-radius: 10px;
 }
 
 .mes-cabecalho label {
   display: block;
   margin-bottom: 6px;
-  color: var(--verde-claro);
+  color: #52657a;
   font-size: 0.75rem;
   font-weight: bold;
 }
@@ -252,7 +268,7 @@ h1 {
   padding: 8px;
   color: var(--azul);
   background: var(--branco);
-  border: none;
+  border: 1px solid #dfe7e2;
   border-radius: 8px;
   font-weight: bold;
   text-transform: uppercase;
@@ -267,9 +283,9 @@ h1 {
   width: auto;
   min-width: 150px;
   padding: 9px 14px;
-  color: var(--branco);
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #07552f;
+  background: #f3f8f5;
+  border: 1px solid #cdded4;
   border-radius: 8px;
   font-size: 0.85rem;
   font-weight: bold;
@@ -280,7 +296,7 @@ h1 {
 }
 
 .botao-acesso:hover {
-  background: rgba(255, 255, 255, 0.22);
+  background: #e6f1ea;
   transform: translateY(-1px);
 }
 
@@ -829,7 +845,7 @@ footer {
 
 @media (max-width: 700px) {
   header {
-    padding: 16px 12px;
+    padding: 8px 8px 0;
   }
 
   main {
@@ -837,7 +853,12 @@ footer {
   }
 
   .cabecalho {
-    gap: 14px;
+    gap: 0;
+  }
+
+  .faixa-identidade {
+    min-height: 110px;
+    padding: 12px 16px;
   }
 
   .identidade {
@@ -847,7 +868,7 @@ footer {
   }
 
   .identidade h1 {
-    font-size: 1.25rem;
+    font-size: clamp(1.05rem, 5vw, 1.35rem);
   }
 
   .subtitulo {
@@ -855,8 +876,8 @@ footer {
   }
 
   .brasao {
-    width: 68px;
-    height: 78px;
+    width: 72px;
+    height: 86px;
   }
 
   .area-acesso {
@@ -864,6 +885,7 @@ footer {
     align-items: center;
     width: 100%;
     gap: 10px;
+    padding: 12px;
   }
 
   .botao-acesso,
@@ -958,8 +980,8 @@ footer {
   }
 
   .brasao {
-    width: 60px;
-    height: 70px;
+    width: 64px;
+    height: 76px;
   }
 }
 
@@ -1650,6 +1672,18 @@ body {
     color: #000 !important;
     background: #fff !important;
     border-bottom: 2px solid #000;
+  }
+
+  .cabecalho {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .faixa-identidade {
+    min-height: 0;
+    padding: 0;
+    background: #fff !important;
   }
 
   .container,
