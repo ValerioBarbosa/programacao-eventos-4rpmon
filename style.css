@@ -1322,18 +1322,6 @@ body {
   white-space: nowrap;
 }
 
-.cabecalho-indicadores-acoes {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.cabecalho-indicadores-acoes button {
-  min-height: 36px;
-  padding: 7px 11px;
-  white-space: nowrap;
-}
-
 .grade-indicadores {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1648,11 +1636,6 @@ body {
   .cabecalho-indicadores {
     display: grid;
     gap: 3px;
-  }
-
-  .cabecalho-indicadores-acoes {
-    align-items: stretch;
-    flex-direction: column;
   }
 
   .atualizacao-indicadores {
