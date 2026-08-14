@@ -183,18 +183,11 @@ header {
   align-items: center;
   justify-content: center;
   background: transparent;
-  filter: drop-shadow(0 9px 10px rgba(0, 0, 0, 0.28));
-  overflow: visible;
+  overflow: hidden;
 }
 
 .brasao::before {
-  position: absolute;
-  inset: 12% 8%;
-  z-index: 0;
-  content: "";
-  background: rgba(207, 159, 53, 0.2);
-  border-radius: 48%;
-  filter: blur(12px);
+  display: none;
 }
 
 .brasao img {
@@ -203,8 +196,8 @@ header {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  transform: scale(1.42);
-  mix-blend-mode: multiply;
+  transform: none;
+  mix-blend-mode: normal;
 }
 
 h1 {
