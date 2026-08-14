@@ -353,10 +353,8 @@ function renderizarIndicadores(filtrados=[]){
     ["Equinos empregados",efetivo.equinos,"soma do campo Efetivo"]
   ];
   gradeIndicadores.innerHTML=cards.map(([rotulo,valor,detalhe])=>`<article class="indicador-operacional"><span>${escaparHTML(rotulo)}</span><strong>${valor}</strong><small>${escaparHTML(detalhe)}</small></article>`).join("");
-  const esquadroes={"1":0,"2":0}, tipos=new Map();
-  filtrados.forEach(e=>{ const esq=obterEsquadrao(e); esquadroes[esq]=(esquadroes[esq]||0)+1; tipos.set(e.tipo||"Outros",(tipos.get(e.tipo||"Outros")||0)+1); });
-  const principais=[...tipos.entries()].sort((a,b)=>b[1]-a[1]).slice(0,4);
-  quebraIndicadores.innerHTML=`<div class="quebra-grupo"><strong>Por esquadrão</strong><span>1º Esquadrão: ${esquadroes["1"]}</span><span>2º Esquadrão: ${esquadroes["2"]}</span></div><div class="quebra-grupo"><strong>Tipos mais frequentes</strong>${principais.length?principais.map(([tipo,total])=>`<span>${escaparHTML(tipo)}: ${total}</span>`).join(""):"<span>Sem eventos no resultado atual</span>"}</div>`;
+  const esquadroes=agruparQuantidade(filtrados,e=>obterTextoEsquadrao(obterEsquadrao(e))), tipos=agruparQuantidade(filtrados,e=>e.tipo||"Outros"), municipios=agruparQuantidade(filtrados,e=>e.municipio||"Não informado");
+  quebraIndicadores.innerHTML=`<div class="grade-relatorio">${listaResumoRelatorio("Por esquadrão",esquadroes)}${listaResumoRelatorio("Por tipo",tipos)}${listaResumoRelatorio("Por município",municipios)}</div>`;
   if(atualizacaoIndicadores) atualizacaoIndicadores.textContent=`Atualizado às ${new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}`;
 }
 
@@ -390,11 +388,6 @@ window.compartilharOperacaoHoje=function(){
   window.open(`https://wa.me/?text=${encodeURIComponent(textoOperacaoHoje())}`,"_blank","noopener,noreferrer");
 };
 
-function eventosDoMesSelecionado(){
-  const mes=Number(mesSelecionado?.value||0)+1, prefixo=`${ano}-${String(mes).padStart(2,"0")}`;
-  return eventos.filter(e=>!e.excluido&&obterDataInicial(e).startsWith(prefixo)).sort((a,b)=>`${obterDataInicial(a)}${obterHoraInicial(a)}`.localeCompare(`${obterDataInicial(b)}${obterHoraInicial(b)}`));
-}
-
 function agruparQuantidade(lista,obterChave){
   const mapa=new Map(); lista.forEach(item=>{ const chave=obterChave(item)||"Não informado"; mapa.set(chave,(mapa.get(chave)||0)+1); });
   return [...mapa.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],"pt-BR"));
@@ -404,23 +397,16 @@ function listaResumoRelatorio(titulo,itens){
   return `<details class="grupo-relatorio"><summary>${escaparHTML(titulo)} <span>${itens.length}</span></summary><div>${itens.length?itens.map(([rotulo,total])=>`<p><span>${escaparHTML(rotulo)}</span><strong>${total}</strong></p>`).join(""):"<p>Sem registros</p>"}</div></details>`;
 }
 
-function renderizarRelatorioMensal(){
-  const conteudo=$("conteudoRelatorioMensal"), periodo=$("periodoRelatorioMensal"); if(!conteudo||!periodo) return;
-  const lista=eventosDoMesSelecionado(), efetivo=contabilizarEfetivo(lista), mes=Number(mesSelecionado?.value||0);
-  periodo.textContent=`${nomesMeses[mes]} de ${ano} · ${lista.length} ${lista.length===1?"evento":"eventos"}`;
-  const esquadroes=agruparQuantidade(lista,e=>obterTextoEsquadrao(obterEsquadrao(e))), tipos=agruparQuantidade(lista,e=>e.tipo||"Outros"), municipios=agruparQuantidade(lista,e=>e.municipio||"Não informado");
-  conteudo.innerHTML=`<div class="relatorio-kpis"><span><b>${lista.length}</b> eventos</span><span><b>${efetivo.conjuntos}</b> Conj</span><span><b>${efetivo.mes}</b> MEs</span><span><b>${efetivo.equinos}</b> equinos</span></div><div class="grade-relatorio">${listaResumoRelatorio("Por esquadrão",esquadroes)}${listaResumoRelatorio("Por tipo",tipos)}${listaResumoRelatorio("Por município",municipios)}</div>`;
-}
-
 function campoCSV(valor){
   const texto=String(valor??""); return /[";\n]/.test(texto)?`"${texto.replaceAll('"','""')}"`:texto;
 }
 
-window.baixarRelatorioMensalCSV=function(){
-  const lista=eventosDoMesSelecionado(), mes=Number(mesSelecionado?.value||0), linhas=[["Data","Horário","Evento","Tipo","Esquadrão","Município","Local","Conjuntos","MEs","Equinos","Outros recursos","OSv/NSv"]];
+window.baixarRelatorioAtualCSV=function(){
+  const lista=eventosFiltradosAtuais, {titulo}=intervaloVisualizacao(), linhas=[["Data","Horário","Evento","Tipo","Esquadrão","Município","Local","Conjuntos","MEs","Equinos","Outros recursos","OSv/NSv"]];
   lista.forEach(e=>{ const efetivo=obterEfetivoEstruturado(e); linhas.push([formatarData(obterDataInicial(e)),formatarPeriodoHorario(e),e.nome,e.tipo,obterTextoEsquadrao(obterEsquadrao(e)),e.municipio,e.local,efetivo.conjuntos,efetivo.mes,efetivo.equinos,outrosEfetivoLegado(e),e.ordemServico]); });
   const conteudo="\uFEFF"+linhas.map(linha=>linha.map(campoCSV).join(";")).join("\r\n");
-  baixarArquivo(`relatorio-emprego-${ano}-${String(mes+1).padStart(2,"0")}.csv`,conteudo,"text/csv;charset=utf-8");
+  const periodo=normalizar(titulo).replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,42);
+  baixarArquivo(`relatorio-operacional-${periodo||dataLocalISO()}.csv`,conteudo,"text/csv;charset=utf-8");
 };
 
 function registrarBackupAutomatico(){
@@ -507,7 +493,7 @@ function renderizar(){
   }).sort((a,b)=>`${obterDataInicial(a)}${obterHoraInicial(a)}`.localeCompare(`${obterDataInicial(b)}${obterHoraInicial(b)}`));
   eventosFiltradosAtuais=filtrados; totalEventos.textContent=filtrados.length;
   renderizarIndicadores(filtrados);
-  renderizarOperacaoHoje(); renderizarRelatorioMensal();
+  renderizarOperacaoHoje();
   if(tituloMes) tituloMes.textContent=titulo;
   if(nomeMesResumo) nomeMesResumo.textContent=modo==="ano"?"Ano completo":titulo;
   if(anoResumo) anoResumo.textContent=modo==="proximos"&&inicio.slice(0,4)!==fim.slice(0,4)?`${inicio.slice(0,4)}–${fim.slice(0,4)}`:String(ano);

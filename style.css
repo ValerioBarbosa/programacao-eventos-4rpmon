@@ -1322,6 +1322,18 @@ body {
   white-space: nowrap;
 }
 
+.cabecalho-indicadores-acoes {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cabecalho-indicadores-acoes button {
+  min-height: 36px;
+  padding: 7px 11px;
+  white-space: nowrap;
+}
+
 .grade-indicadores {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1355,33 +1367,7 @@ body {
 }
 
 .quebra-indicadores {
-  display: grid;
-  grid-template-columns: minmax(220px, .8fr) minmax(280px, 1.2fr);
-  gap: 10px;
   margin-top: 10px;
-}
-
-.quebra-grupo {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  padding: 11px 13px;
-  background: #edf3f7;
-  border-radius: 10px;
-}
-
-.quebra-grupo strong {
-  width: 100%;
-  color: #24384e;
-  font-size: 0.8rem;
-}
-
-.quebra-grupo span {
-  padding: 4px 8px;
-  color: #42566b;
-  background: #fff;
-  border-radius: 999px;
-  font-size: 0.76rem;
 }
 
 .evento-card {
@@ -1543,8 +1529,7 @@ body {
   flex: 1 1 280px;
 }
 
-.painel-hoje,
-.painel-relatorio {
+.painel-hoje {
   margin: 0 0 22px;
   padding: 18px;
   background: #fff;
@@ -1557,8 +1542,7 @@ body {
   border-top: 5px solid var(--verde);
 }
 
-.painel-hoje .cabecalho-secao,
-.painel-relatorio .cabecalho-secao {
+.painel-hoje .cabecalho-secao {
   align-items: center;
 }
 
@@ -1596,28 +1580,6 @@ body {
 .item-operacao-hoje button {
   min-height: 36px;
   padding: 7px 11px;
-}
-
-.relatorio-kpis {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 9px;
-  margin-bottom: 12px;
-}
-
-.relatorio-kpis span {
-  display: grid;
-  gap: 2px;
-  padding: 11px;
-  color: #52657a;
-  background: #f4f7f9;
-  border-radius: 10px;
-  text-align: center;
-}
-
-.relatorio-kpis b {
-  color: var(--verde);
-  font-size: 1.35rem;
 }
 
 .grade-relatorio {
@@ -1688,6 +1650,11 @@ body {
     gap: 3px;
   }
 
+  .cabecalho-indicadores-acoes {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .atualizacao-indicadores {
     white-space: normal;
   }
@@ -1733,8 +1700,7 @@ body {
     flex-basis: calc(50% - 7px);
   }
 
-  .painel-hoje,
-  .painel-relatorio {
+  .painel-hoje {
     padding: 14px;
   }
 
@@ -1749,9 +1715,6 @@ body {
     width: 100%;
   }
 
-  .relatorio-kpis {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
