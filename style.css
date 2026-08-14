@@ -138,9 +138,9 @@ button:disabled {
 
 header {
   width: 100%;
+  background: linear-gradient(135deg, var(--verde-escuro), var(--verde));
   color: var(--branco);
-  background: var(--branco);
-  padding: 10px 10px 0;
+  padding: 22px 18px;
 }
 
 .container {
@@ -155,33 +155,16 @@ header {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0;
+  gap: 16px;
   width: 100%;
   text-align: center;
-  background: var(--branco);
-  border: 1px solid rgba(7, 85, 47, 0.12);
-  border-radius: 16px 16px 0 0;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-  overflow: hidden;
-}
-
-.faixa-identidade {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 132px;
-  padding: 16px 28px;
-  background:
-    radial-gradient(circle at 72% 42%, rgba(18, 112, 68, 0.28), transparent 32%),
-    linear-gradient(120deg, #012a19 0%, #003d25 56%, #073a26 100%);
 }
 
 .identidade {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 18px;
+  gap: 16px;
   min-width: 0;
 }
 
@@ -191,19 +174,27 @@ header {
 }
 
 .brasao {
-  width: 84px;
-  height: 98px;
+  position: relative;
+  width: 92px;
+  height: 104px;
   padding: 0;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   background: transparent;
+  filter: drop-shadow(0 9px 10px rgba(0, 0, 0, 0.28));
   overflow: visible;
 }
 
 .brasao::before {
-  display: none;
+  position: absolute;
+  inset: 12% 8%;
+  z-index: 0;
+  content: "";
+  background: rgba(207, 159, 53, 0.2);
+  border-radius: 48%;
+  filter: blur(12px);
 }
 
 .brasao img {
@@ -212,16 +203,13 @@ header {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  transform: scale(1.38);
-  filter: drop-shadow(0 5px 5px rgba(0, 0, 0, 0.34));
+  transform: scale(1.42);
   mix-blend-mode: multiply;
 }
 
 h1 {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(1.45rem, 3.4vw, 2.15rem);
-  line-height: 1.15;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  font-size: clamp(1.3rem, 4vw, 2.1rem);
+  line-height: 1.2;
   overflow-wrap: anywhere;
 }
 
@@ -240,25 +228,21 @@ h1 {
   justify-content: center;
   gap: 10px;
   width: 100%;
-  padding: 12px 16px;
-  color: var(--azul);
-  background: var(--branco);
-  border-top: 1px solid #e5e9ec;
 }
 
 .mes-cabecalho {
   min-width: 190px;
   padding: 10px 14px;
   text-align: center;
-  background: #f7f9f8;
-  border: 1px solid #dfe7e2;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 10px;
 }
 
 .mes-cabecalho label {
   display: block;
   margin-bottom: 6px;
-  color: #52657a;
+  color: var(--verde-claro);
   font-size: 0.75rem;
   font-weight: bold;
 }
@@ -268,7 +252,7 @@ h1 {
   padding: 8px;
   color: var(--azul);
   background: var(--branco);
-  border: 1px solid #dfe7e2;
+  border: none;
   border-radius: 8px;
   font-weight: bold;
   text-transform: uppercase;
@@ -283,9 +267,9 @@ h1 {
   width: auto;
   min-width: 150px;
   padding: 9px 14px;
-  color: #07552f;
-  background: #f3f8f5;
-  border: 1px solid #cdded4;
+  color: var(--branco);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 8px;
   font-size: 0.85rem;
   font-weight: bold;
@@ -296,7 +280,7 @@ h1 {
 }
 
 .botao-acesso:hover {
-  background: #e6f1ea;
+  background: rgba(255, 255, 255, 0.22);
   transform: translateY(-1px);
 }
 
@@ -845,7 +829,7 @@ footer {
 
 @media (max-width: 700px) {
   header {
-    padding: 8px 8px 0;
+    padding: 16px 12px;
   }
 
   main {
@@ -853,12 +837,7 @@ footer {
   }
 
   .cabecalho {
-    gap: 0;
-  }
-
-  .faixa-identidade {
-    min-height: 110px;
-    padding: 12px 16px;
+    gap: 14px;
   }
 
   .identidade {
@@ -868,7 +847,7 @@ footer {
   }
 
   .identidade h1 {
-    font-size: clamp(1.05rem, 5vw, 1.35rem);
+    font-size: 1.25rem;
   }
 
   .subtitulo {
@@ -876,8 +855,8 @@ footer {
   }
 
   .brasao {
-    width: 72px;
-    height: 86px;
+    width: 68px;
+    height: 78px;
   }
 
   .area-acesso {
@@ -885,7 +864,6 @@ footer {
     align-items: center;
     width: 100%;
     gap: 10px;
-    padding: 12px;
   }
 
   .botao-acesso,
@@ -980,8 +958,8 @@ footer {
   }
 
   .brasao {
-    width: 64px;
-    height: 76px;
+    width: 60px;
+    height: 70px;
   }
 }
 
@@ -1674,18 +1652,6 @@ body {
     border-bottom: 2px solid #000;
   }
 
-  .cabecalho {
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-  }
-
-  .faixa-identidade {
-    min-height: 0;
-    padding: 0;
-    background: #fff !important;
-  }
-
   .container,
   main {
     width: 100% !important;
@@ -1713,7 +1679,6 @@ body {
 
   .brasao img {
     transform: none;
-    filter: none;
     mix-blend-mode: normal;
   }
 
