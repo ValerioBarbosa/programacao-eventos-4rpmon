@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="style.css?v=20260814-3">
+<link rel="stylesheet" href="style.css?v=20260814-4">
 </head>
 <body>
 <header>
@@ -99,6 +99,10 @@ Modo P3 ativo
 </select>
 </div>
 <div class="campo">
+<label for="filtroMunicipio">Município</label>
+<select id="filtroMunicipio"><option value="todos">Todos os municípios</option></select>
+</div>
+<div class="campo">
 <label for="modoVisualizacao">Visualização</label>
 <select id="modoVisualizacao">
 <option value="dia">Dia</option>
@@ -124,6 +128,20 @@ Modo P3 ativo
 <div class="grade-indicadores" id="gradeIndicadores" aria-live="polite"></div>
 <div class="quebra-indicadores" id="quebraIndicadores"></div>
 </section>
+<section class="painel-hoje" aria-labelledby="tituloOperacaoHoje">
+<div class="cabecalho-secao">
+<div><span class="rotulo-secao">Emprego imediato</span><h2 id="tituloOperacaoHoje">Operação de hoje</h2><p id="resumoOperacaoHoje">Carregando eventos do dia…</p></div>
+<button class="botao-whatsapp" type="button" onclick="compartilharOperacaoHoje()">WhatsApp de hoje</button>
+</div>
+<div id="listaOperacaoHoje" class="lista-operacao-hoje" aria-live="polite"></div>
+</section>
+<section class="painel-relatorio" aria-labelledby="tituloRelatorioMensal">
+<div class="cabecalho-secao">
+<div><span class="rotulo-secao">Análise mensal</span><h2 id="tituloRelatorioMensal">Relatório de emprego</h2><p id="periodoRelatorioMensal">Consolidado do mês selecionado</p></div>
+<button class="botao-secundario" type="button" onclick="baixarRelatorioMensalCSV()">Baixar CSV</button>
+</div>
+<div id="conteudoRelatorioMensal" class="conteudo-relatorio-mensal" aria-live="polite"></div>
+</section>
 <div class="resumo">
 <div class="indicador">Ano: <strong id="anoResumo">2026</strong></div>
 <div class="indicador">Mês: <strong id="nomeMesResumo">Agosto</strong></div>
@@ -138,6 +156,10 @@ Modo P3 ativo
 <div class="cabecalho-formulario">
 <h2 id="tituloFormulario">Adicionar evento — P3</h2>
 <button class="fechar-edicao" id="botaoFecharEdicao" type="button" aria-label="Fechar edição" title="Fechar edição" hidden>×</button>
+</div>
+<div class="modelos-evento">
+<div class="campo"><label for="modeloEvento">Modelo de evento</label><select id="modeloEvento"><option value="">Selecione um modelo</option><option value="polost">POLOST</option><option value="futebol">Jogo de futebol</option><option value="visitacao">Visitação</option><option value="cavalgada">Cavalgada</option><option value="deslocamento">Deslocamento operacional</option></select></div>
+<button class="botao-secundario" type="button" onclick="aplicarModeloEvento()">Aplicar modelo</button>
 </div>
 <div class="form-grid">
 <div class="campo">
@@ -169,8 +191,20 @@ Modo P3 ativo
 <input id="ordemServicoEvento" type="text" placeholder="Ex.: OSv 352">
 </div>
 <div class="campo">
-<label for="efetivoEvento">Efetivo / recursos</label>
-<input id="efetivoEvento" type="text" placeholder="Ex.: 03 Conj · 02 equinos">
+<label for="conjuntosEvento">Conjuntos</label>
+<input id="conjuntosEvento" type="number" min="0" step="1" inputmode="numeric" placeholder="0">
+</div>
+<div class="campo">
+<label for="mesEvento">MEs</label>
+<input id="mesEvento" type="number" min="0" step="1" inputmode="numeric" placeholder="0">
+</div>
+<div class="campo">
+<label for="equinosEvento">Equinos</label>
+<input id="equinosEvento" type="number" min="0" step="1" inputmode="numeric" placeholder="0">
+</div>
+<div class="campo campo-largo">
+<label for="efetivoEvento">Outros recursos</label>
+<input id="efetivoEvento" type="text" placeholder="Ex.: 01 VTR · apoio do efetivo local">
 </div>
 <div class="campo campo-largo">
 <label for="observacoesEvento">Observações</label>
@@ -262,6 +296,6 @@ Modo P3 ativo
 </div>
 </div>
 
-<script type="module" src="app.js?v=20260814-1"></script>
+<script type="module" src="app.js?v=20260814-2"></script>
 </body>
 </html>

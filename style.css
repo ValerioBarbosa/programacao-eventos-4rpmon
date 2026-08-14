@@ -1528,6 +1528,141 @@ body {
   color: #64748b;
 }
 
+.modelos-evento {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  margin: 0 0 16px;
+  padding: 12px;
+  background: #edf3f7;
+  border: 1px solid #d5e0eb;
+  border-radius: 10px;
+}
+
+.modelos-evento .campo {
+  flex: 1 1 280px;
+}
+
+.painel-hoje,
+.painel-relatorio {
+  margin: 0 0 22px;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid var(--borda);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+}
+
+.painel-hoje {
+  border-top: 5px solid var(--verde);
+}
+
+.painel-hoje .cabecalho-secao,
+.painel-relatorio .cabecalho-secao {
+  align-items: center;
+}
+
+.lista-operacao-hoje {
+  display: grid;
+  gap: 9px;
+}
+
+.item-operacao-hoje {
+  display: grid;
+  grid-template-columns: minmax(92px, auto) 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 12px;
+  background: #f7faf8;
+  border: 1px solid #d9e7df;
+  border-radius: 10px;
+}
+
+.item-operacao-hoje time {
+  color: var(--verde-escuro);
+  font-weight: 800;
+}
+
+.item-operacao-hoje div {
+  display: grid;
+  gap: 2px;
+}
+
+.item-operacao-hoje span,
+.item-operacao-hoje small {
+  color: #64748b;
+}
+
+.item-operacao-hoje button {
+  min-height: 36px;
+  padding: 7px 11px;
+}
+
+.relatorio-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+  margin-bottom: 12px;
+}
+
+.relatorio-kpis span {
+  display: grid;
+  gap: 2px;
+  padding: 11px;
+  color: #52657a;
+  background: #f4f7f9;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.relatorio-kpis b {
+  color: var(--verde);
+  font-size: 1.35rem;
+}
+
+.grade-relatorio {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.grupo-relatorio {
+  background: #f8fafc;
+  border: 1px solid #dbe3ea;
+  border-radius: 10px;
+}
+
+.grupo-relatorio summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 12px;
+  color: #24384e;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.grupo-relatorio summary span {
+  color: #64748b;
+}
+
+.grupo-relatorio div {
+  padding: 0 12px 10px;
+}
+
+.grupo-relatorio p {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  color: #52657a;
+  border-top: 1px solid #e2e8f0;
+}
+
+.grupo-relatorio p strong {
+  color: #17375e;
+}
+
 @media (max-width: 900px) {
   .grade-indicadores {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1535,6 +1670,10 @@ body {
 
   .modal-edicao .form-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grade-relatorio {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1592,6 +1731,26 @@ body {
 
   .acoes-publicas button {
     flex-basis: calc(50% - 7px);
+  }
+
+  .painel-hoje,
+  .painel-relatorio {
+    padding: 14px;
+  }
+
+  .modelos-evento,
+  .item-operacao-hoje {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .item-operacao-hoje button {
+    width: 100%;
+  }
+
+  .relatorio-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

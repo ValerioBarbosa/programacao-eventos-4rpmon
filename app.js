@@ -36,6 +36,7 @@ const anoSelecionado = $("anoSelecionado");
 const pesquisa = $("pesquisa");
 const filtroTipo = $("filtroTipo");
 const filtroEsquadrao = $("filtroEsquadrao");
+const filtroMunicipio = $("filtroMunicipio");
 const modoVisualizacao = $("modoVisualizacao");
 const dataReferencia = $("dataReferencia");
 const tituloMes = $("tituloMes");
@@ -72,6 +73,45 @@ function escaparHTML(texto){
 
 function normalizar(texto){
   return String(texto ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/\s+/g," ").trim();
+}
+
+function numeroInteiro(valor){
+  const numero=Number(valor); return Number.isFinite(numero)&&numero>0?Math.trunc(numero):0;
+}
+
+function extrairEfetivoTexto(texto=""){
+  const totais={conjuntos:0,mes:0,equinos:0};
+  const padroes=[
+    ["conjuntos",/(\d+)\s*conj(?:unto)?s?\b/gi],
+    ["mes",/(\d+)\s*(?:m\.?\s*e\.?s?|militares?\s+estaduais?)\b/gi],
+    ["equinos",/(\d+)\s*(?:equinos?|cavalos?)\b/gi]
+  ];
+  padroes.forEach(([categoria,padrao])=>{
+    for(const correspondencia of String(texto).matchAll(padrao)) totais[categoria]+=numeroInteiro(correspondencia[1]);
+  });
+  return totais;
+}
+
+function obterEfetivoEstruturado(evento={}){
+  const estruturado=["efetivoConjuntos","efetivoMEs","efetivoEquinos"].some(campo=>evento[campo]!==undefined&&evento[campo]!==null&&evento[campo]!=="");
+  if(!estruturado) return extrairEfetivoTexto(evento.efetivo||"");
+  return {conjuntos:numeroInteiro(evento.efetivoConjuntos),mes:numeroInteiro(evento.efetivoMEs),equinos:numeroInteiro(evento.efetivoEquinos)};
+}
+
+function montarTextoEfetivo({conjuntos=0,mes=0,equinos=0,outros=""}={}){
+  return [conjuntos&&`${conjuntos} Conj`,mes&&`${mes} MEs`,equinos&&`${equinos} ${equinos===1?"equino":"equinos"}`,String(outros).trim()].filter(Boolean).join(" · ");
+}
+
+function textoEfetivo(evento={}){
+  const estruturado=["efetivoConjuntos","efetivoMEs","efetivoEquinos","efetivoOutros"].some(campo=>evento[campo]!==undefined);
+  if(!estruturado) return evento.efetivo||"";
+  const efetivo=obterEfetivoEstruturado(evento);
+  return montarTextoEfetivo({...efetivo,outros:evento.efetivoOutros||""});
+}
+
+function outrosEfetivoLegado(evento={}){
+  if(evento.efetivoOutros!==undefined) return evento.efetivoOutros||"";
+  return String(evento.efetivo||"").replace(/\b\d+\s*(?:conj(?:unto)?s?|m\.?\s*e\.?s?|militares?\s+estaduais?|equinos?|cavalos?)\b/gi,"").replace(/^[\s·|,;-]+|[\s·|,;-]+$/g,"").replace(/\s*[·|,;]\s*[·|,;]+/g," · ").trim();
 }
 
 function agoraISO(){ return new Date().toISOString(); }
@@ -114,7 +154,7 @@ function textoEvento(e){
     e.tipo,
     obterTextoEsquadrao(obterEsquadrao(e)),
     obterLocalCompleto(e),
-    e.efetivo&&`Efetivo: ${e.efetivo}`,
+    textoEfetivo(e)&&`Efetivo: ${textoEfetivo(e)}`,
     e.ordemServico&&`OSv/NSv: ${e.ordemServico}`,
     e.observacoes,
     urlPublicaEvento(e)
@@ -138,7 +178,7 @@ function criarICS(e){
   const datas=horaInicio
     ? [`DTSTART:${dataHoraICS(inicio,horaInicio)}`,...(horaFim?[`DTEND:${dataHoraICS(fim,horaFim)}`]:[])]
     : [`DTSTART;VALUE=DATE:${dataICS(inicio)}`,`DTEND;VALUE=DATE:${dataICS(somarDias(fim,1))}`];
-  return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//4RPMon//Agenda Operacional//PT-BR","CALSCALE:GREGORIAN","METHOD:PUBLISH","BEGIN:VEVENT",`UID:${escaparICS(e.id)}@agenda-4rpmon`,`DTSTAMP:${new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"")}`,...datas,`SUMMARY:${escaparICS(e.nome)}`,`DESCRIPTION:${escaparICS([e.tipo,obterTextoEsquadrao(obterEsquadrao(e)),e.efetivo,e.ordemServico,e.observacoes,urlPublicaEvento(e)].filter(Boolean).join(" · "))}`,`LOCATION:${escaparICS(obterLocalCompleto(e))}`,"END:VEVENT","END:VCALENDAR"].join("\r\n");
+  return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//4RPMon//Agenda Operacional//PT-BR","CALSCALE:GREGORIAN","METHOD:PUBLISH","BEGIN:VEVENT",`UID:${escaparICS(e.id)}@agenda-4rpmon`,`DTSTAMP:${new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"")}`,...datas,`SUMMARY:${escaparICS(e.nome)}`,`DESCRIPTION:${escaparICS([e.tipo,obterTextoEsquadrao(obterEsquadrao(e)),textoEfetivo(e),e.ordemServico,e.observacoes,urlPublicaEvento(e)].filter(Boolean).join(" · "))}`,`LOCATION:${escaparICS(obterLocalCompleto(e))}`,"END:VEVENT","END:VCALENDAR"].join("\r\n");
 }
 
 function baixarArquivo(nome,conteudo,tipo){
@@ -157,7 +197,7 @@ function garantirModalDetalhes(){
 window.abrirDetalhesEvento=function(id){
   const e=obterEvento(id); if(!e) return;
   const modal=garantirModalDetalhes(), conteudo=$("conteudoDetalhesEvento"), local=obterLocalCompleto(e);
-  conteudo.innerHTML=`<span class="evento-tipo ${obterClasseTipo(e.tipo)}">${escaparHTML(e.tipo||"Outros")}</span><h2 id="modalEventoTitulo">${escaparHTML(e.nome||"Evento")}</h2><p class="detalhe-data">${escaparHTML(formatarData(obterDataInicial(e)))} · ${escaparHTML(formatarPeriodoHorario(e))}</p><div class="detalhes-grid">${metadado("Esquadrão",obterTextoEsquadrao(obterEsquadrao(e)))}${metadado("Local",e.local)}${metadado("Município",e.municipio)}${metadado("Efetivo / recursos",e.efetivo)}${metadado("OSv / NSv",e.ordemServico)}${metadado("Observações",e.observacoes)}</div><div class="acoes-detalhes"><button type="button" onclick="copiarLinkEvento('${e.id}')">Copiar link</button><button class="botao-whatsapp" type="button" onclick="compartilharEventoWhatsApp('${e.id}')">WhatsApp</button><button class="botao-secundario" type="button" onclick="adicionarEventoCalendario('${e.id}')">Adicionar ao calendário</button>${local?`<button class="botao-mapa" type="button" onclick="abrirMapaEvento('${e.id}')">Abrir no Google Maps</button><button class="botao-mapa" type="button" onclick="tracarRotaEvento('${e.id}')">Traçar rota</button>`:""}</div>`;
+  conteudo.innerHTML=`<span class="evento-tipo ${obterClasseTipo(e.tipo)}">${escaparHTML(e.tipo||"Outros")}</span><h2 id="modalEventoTitulo">${escaparHTML(e.nome||"Evento")}</h2><p class="detalhe-data">${escaparHTML(formatarData(obterDataInicial(e)))} · ${escaparHTML(formatarPeriodoHorario(e))}</p><div class="detalhes-grid">${metadado("Esquadrão",obterTextoEsquadrao(obterEsquadrao(e)))}${metadado("Local",e.local)}${metadado("Município",e.municipio)}${metadado("Efetivo / recursos",textoEfetivo(e))}${metadado("OSv / NSv",e.ordemServico)}${metadado("Observações",e.observacoes)}</div><div class="acoes-detalhes"><button type="button" onclick="copiarLinkEvento('${e.id}')">Copiar link</button><button class="botao-whatsapp" type="button" onclick="compartilharEventoWhatsApp('${e.id}')">WhatsApp</button><button class="botao-secundario" type="button" onclick="adicionarEventoCalendario('${e.id}')">Adicionar ao calendário</button>${local?`<button class="botao-mapa" type="button" onclick="abrirMapaEvento('${e.id}')">Abrir no Google Maps</button><button class="botao-mapa" type="button" onclick="tracarRotaEvento('${e.id}')">Traçar rota</button>`:""}</div>`;
   modal.style.display="flex"; document.body.classList.add("modal-aberto"); modal.querySelector(".fechar-detalhes")?.focus();
 };
 window.fecharDetalhesEvento=function(){ const modal=$("modalDetalhesEvento"); if(modal) modal.style.display="none"; document.body.classList.remove("modal-aberto"); };
@@ -191,6 +231,14 @@ function sincronizarOpcoesAno(){
   const selecionado=ano;
   anoSelecionado.innerHTML=obterAnosDisponiveis().map(valor=>`<option value="${valor}">${valor}</option>`).join("");
   anoSelecionado.value=String(selecionado);
+}
+
+function sincronizarOpcoesMunicipio(){
+  if(!filtroMunicipio) return;
+  const selecionado=filtroMunicipio.value||"todos";
+  const municipios=[...new Set(eventos.filter(e=>!e.excluido&&String(e.municipio||"").trim()).map(e=>String(e.municipio).trim()))].sort((a,b)=>a.localeCompare(b,"pt-BR"));
+  filtroMunicipio.innerHTML='<option value="todos">Todos os municípios</option>'+municipios.map(municipio=>`<option value="${escaparHTML(municipio)}">${escaparHTML(municipio)}</option>`).join("");
+  filtroMunicipio.value=municipios.includes(selecionado)?selecionado:"todos";
 }
 
 function atualizarConfiguracaoAno({preservarData=false}={}){
@@ -253,6 +301,7 @@ window.limparFiltros=function(){
   if(pesquisa) pesquisa.value="";
   if(filtroTipo) filtroTipo.value="todos";
   if(filtroEsquadrao) filtroEsquadrao.value="todos";
+  if(filtroMunicipio) filtroMunicipio.value="todos";
   if(statusAgenda) statusAgenda.textContent="Filtros removidos.";
   renderizar();
 };
@@ -282,16 +331,9 @@ function contarNoIntervalo(lista,inicio,fim){ return lista.filter(e=>eventoNoInt
 
 function contabilizarEfetivo(lista=[]){
   const totais={conjuntos:0,mes:0,equinos:0};
-  const padroes=[
-    ["conjuntos",/(\d+)\s*conj(?:unto)?s?\b/gi],
-    ["mes",/(\d+)\s*(?:m\.?\s*e\.?s?|militares?\s+estaduais?)\b/gi],
-    ["equinos",/(\d+)\s*(?:equinos?|cavalos?)\b/gi]
-  ];
   lista.forEach(evento=>{
-    const texto=String(evento.efetivo||"");
-    padroes.forEach(([categoria,padrao])=>{
-      for(const correspondencia of texto.matchAll(padrao)) totais[categoria]+=Number(correspondencia[1])||0;
-    });
+    const efetivo=obterEfetivoEstruturado(evento);
+    totais.conjuntos+=efetivo.conjuntos; totais.mes+=efetivo.mes; totais.equinos+=efetivo.equinos;
   });
   return totais;
 }
@@ -318,6 +360,69 @@ function renderizarIndicadores(filtrados=[]){
   if(atualizacaoIndicadores) atualizacaoIndicadores.textContent=`Atualizado às ${new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}`;
 }
 
+function eventosDoDia(data){
+  return eventos.filter(e=>!e.excluido&&obterDataInicial(e)&&eventoNoIntervalo(e,data,data)).sort((a,b)=>`${obterHoraInicial(a)}${a.nome||""}`.localeCompare(`${obterHoraInicial(b)}${b.nome||""}`));
+}
+
+function renderizarOperacaoHoje(){
+  const lista=$("listaOperacaoHoje"), resumo=$("resumoOperacaoHoje"); if(!lista||!resumo) return;
+  const hoje=dataLocalISO(), itens=eventosDoDia(hoje), efetivo=contabilizarEfetivo(itens);
+  resumo.textContent=`${formatarData(hoje)} · ${itens.length} ${itens.length===1?"evento":"eventos"} · ${efetivo.conjuntos} Conj · ${efetivo.mes} MEs · ${efetivo.equinos} equinos`;
+  lista.innerHTML=itens.length?itens.map(e=>`<article class="item-operacao-hoje"><time>${escaparHTML(formatarPeriodoHorario(e))}</time><div><strong>${escaparHTML(e.nome||"Evento")}</strong><span>${escaparHTML([obterTextoEsquadrao(obterEsquadrao(e)),e.municipio||e.local].filter(Boolean).join(" · "))}</span><small>${escaparHTML(textoEfetivo(e)||"Efetivo não informado")}</small></div><button type="button" onclick="abrirDetalhesEvento('${e.id}')">Detalhes</button></article>`).join(""):'<div class="estado-agenda estado-vazio"><strong>Sem eventos para hoje</strong><span>A programação não possui demandas nesta data.</span></div>';
+}
+
+function textoOperacaoHoje(){
+  const hoje=dataLocalISO(), itens=eventosDoDia(hoje), efetivo=contabilizarEfetivo(itens);
+  let texto=`*OPERAÇÃO DE HOJE — 4º RPMon*\n*${formatarData(hoje)}*\n\n*Resumo:* ${itens.length} ${itens.length===1?"evento":"eventos"} | ${efetivo.conjuntos} Conj | ${efetivo.mes} MEs | ${efetivo.equinos} equinos\n\n`;
+  if(!itens.length) return `${texto}_Sem eventos programados._`;
+  itens.forEach(e=>{
+    texto+=`• *${formatarPeriodoHorario(e)} — ${e.nome||"Evento"}*\n`;
+    texto+=`  ${obterTextoEsquadrao(obterEsquadrao(e))}`;
+    if(e.municipio||e.local) texto+=` | ${e.municipio||e.local}`;
+    if(textoEfetivo(e)) texto+=` | ${textoEfetivo(e)}`;
+    if(e.ordemServico) texto+=` | ${e.ordemServico}`;
+    texto+="\n";
+  });
+  return texto;
+}
+
+window.compartilharOperacaoHoje=function(){
+  window.open(`https://wa.me/?text=${encodeURIComponent(textoOperacaoHoje())}`,"_blank","noopener,noreferrer");
+};
+
+function eventosDoMesSelecionado(){
+  const mes=Number(mesSelecionado?.value||0)+1, prefixo=`${ano}-${String(mes).padStart(2,"0")}`;
+  return eventos.filter(e=>!e.excluido&&obterDataInicial(e).startsWith(prefixo)).sort((a,b)=>`${obterDataInicial(a)}${obterHoraInicial(a)}`.localeCompare(`${obterDataInicial(b)}${obterHoraInicial(b)}`));
+}
+
+function agruparQuantidade(lista,obterChave){
+  const mapa=new Map(); lista.forEach(item=>{ const chave=obterChave(item)||"Não informado"; mapa.set(chave,(mapa.get(chave)||0)+1); });
+  return [...mapa.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],"pt-BR"));
+}
+
+function listaResumoRelatorio(titulo,itens){
+  return `<details class="grupo-relatorio"><summary>${escaparHTML(titulo)} <span>${itens.length}</span></summary><div>${itens.length?itens.map(([rotulo,total])=>`<p><span>${escaparHTML(rotulo)}</span><strong>${total}</strong></p>`).join(""):"<p>Sem registros</p>"}</div></details>`;
+}
+
+function renderizarRelatorioMensal(){
+  const conteudo=$("conteudoRelatorioMensal"), periodo=$("periodoRelatorioMensal"); if(!conteudo||!periodo) return;
+  const lista=eventosDoMesSelecionado(), efetivo=contabilizarEfetivo(lista), mes=Number(mesSelecionado?.value||0);
+  periodo.textContent=`${nomesMeses[mes]} de ${ano} · ${lista.length} ${lista.length===1?"evento":"eventos"}`;
+  const esquadroes=agruparQuantidade(lista,e=>obterTextoEsquadrao(obterEsquadrao(e))), tipos=agruparQuantidade(lista,e=>e.tipo||"Outros"), municipios=agruparQuantidade(lista,e=>e.municipio||"Não informado");
+  conteudo.innerHTML=`<div class="relatorio-kpis"><span><b>${lista.length}</b> eventos</span><span><b>${efetivo.conjuntos}</b> Conj</span><span><b>${efetivo.mes}</b> MEs</span><span><b>${efetivo.equinos}</b> equinos</span></div><div class="grade-relatorio">${listaResumoRelatorio("Por esquadrão",esquadroes)}${listaResumoRelatorio("Por tipo",tipos)}${listaResumoRelatorio("Por município",municipios)}</div>`;
+}
+
+function campoCSV(valor){
+  const texto=String(valor??""); return /[";\n]/.test(texto)?`"${texto.replaceAll('"','""')}"`:texto;
+}
+
+window.baixarRelatorioMensalCSV=function(){
+  const lista=eventosDoMesSelecionado(), mes=Number(mesSelecionado?.value||0), linhas=[["Data","Horário","Evento","Tipo","Esquadrão","Município","Local","Conjuntos","MEs","Equinos","Outros recursos","OSv/NSv"]];
+  lista.forEach(e=>{ const efetivo=obterEfetivoEstruturado(e); linhas.push([formatarData(obterDataInicial(e)),formatarPeriodoHorario(e),e.nome,e.tipo,obterTextoEsquadrao(obterEsquadrao(e)),e.municipio,e.local,efetivo.conjuntos,efetivo.mes,efetivo.equinos,outrosEfetivoLegado(e),e.ordemServico]); });
+  const conteudo="\uFEFF"+linhas.map(linha=>linha.map(campoCSV).join(";")).join("\r\n");
+  baixarArquivo(`relatorio-emprego-${ano}-${String(mes+1).padStart(2,"0")}.csv`,conteudo,"text/csv;charset=utf-8");
+};
+
 function registrarBackupAutomatico(){
   if(!auth.currentUser || !eventos.length) return;
   try{
@@ -336,7 +441,7 @@ function iniciarEscutaEventos(){
   renderizarCarregamento();
   onSnapshot(query(collection(db,"eventos")), snapshot => {
     eventos=snapshot.docs.map(documento => ({id:documento.id,...documento.data()}));
-    primeiraCargaConcluida=true; sincronizarOpcoesAno(); renderizar(); renderizarAuditoria(); registrarBackupAutomatico();
+    primeiraCargaConcluida=true; sincronizarOpcoesAno(); sincronizarOpcoesMunicipio(); renderizar(); renderizarAuditoria(); registrarBackupAutomatico();
     if(eventoDetalhePendente){ const id=eventoDetalhePendente; eventoDetalhePendente=null; setTimeout(()=>window.abrirDetalhesEvento(id),100); }
   }, () => {
     primeiraCargaConcluida=true;
@@ -393,21 +498,22 @@ function renderizar(){
   if(!listaEventos || !mesSelecionado || !pesquisa || !filtroTipo || !totalEventos) return;
   if(!primeiraCargaConcluida){ renderizarCarregamento(); return; }
   const {inicio,fim,titulo}=intervaloVisualizacao();
-  const termo=normalizar(pesquisa.value), tipo=filtroTipo.value, esq=filtroEsquadrao?.value || "todos";
+  const termo=normalizar(pesquisa.value), tipo=filtroTipo.value, esq=filtroEsquadrao?.value || "todos", municipio=filtroMunicipio?.value||"todos";
   const hoje=dataLocalISO(), modo=modoVisualizacao?.value || "mes";
   const filtrados=eventos.filter(e=>{
     if(e.excluido || !obterDataInicial(e) || !eventoNoIntervalo(e,inicio,fim)) return false;
-    const haystack=normalizar(`${e.nome} ${e.local} ${e.municipio} ${e.observacoes} ${e.ordemServico} ${e.efetivo} ${e.tipo}`);
-    return (!termo || haystack.includes(termo)) && (tipo==="todos" || e.tipo===tipo) && (esq==="todos" || obterEsquadrao(e)===esq);
+    const haystack=normalizar(`${e.nome} ${e.local} ${e.municipio} ${e.observacoes} ${e.ordemServico} ${textoEfetivo(e)} ${e.tipo}`);
+    return (!termo || haystack.includes(termo)) && (tipo==="todos" || e.tipo===tipo) && (esq==="todos" || obterEsquadrao(e)===esq) && (municipio==="todos" || e.municipio===municipio);
   }).sort((a,b)=>`${obterDataInicial(a)}${obterHoraInicial(a)}`.localeCompare(`${obterDataInicial(b)}${obterHoraInicial(b)}`));
   eventosFiltradosAtuais=filtrados; totalEventos.textContent=filtrados.length;
   renderizarIndicadores(filtrados);
+  renderizarOperacaoHoje(); renderizarRelatorioMensal();
   if(tituloMes) tituloMes.textContent=titulo;
   if(nomeMesResumo) nomeMesResumo.textContent=modo==="ano"?"Ano completo":titulo;
   if(anoResumo) anoResumo.textContent=modo==="proximos"&&inicio.slice(0,4)!==fim.slice(0,4)?`${inicio.slice(0,4)}–${fim.slice(0,4)}`:String(ano);
   atualizarEstadoAtalhos();
   listaEventos.innerHTML="";
-  const temFiltros=!!termo || tipo!=="todos" || esq!=="todos";
+  const temFiltros=!!termo || tipo!=="todos" || esq!=="todos" || municipio!=="todos";
   if(!filtrados.length){
     if(statusAgenda) statusAgenda.textContent="Nenhum evento encontrado com os critérios selecionados.";
     listaEventos.innerHTML=`<div class="estado-agenda estado-vazio"><strong>Nenhum evento encontrado</strong><span>${temFiltros?"Tente remover um dos filtros ou pesquisar outro termo.":"Não há eventos cadastrados para este período."}</span>${temFiltros?'<button type="button" onclick="limparFiltros()">Limpar filtros</button>':""}</div>`;
@@ -446,20 +552,39 @@ function renderizar(){
       const localMapa=obterLocalCompleto(e);
       const acoesPublicas=`<div class="acoes-publicas"><button type="button" onclick="event.stopPropagation(); abrirDetalhesEvento('${e.id}')">Detalhes</button><button type="button" onclick="event.stopPropagation(); copiarLinkEvento('${e.id}')">Copiar link</button><button type="button" class="botao-secundario" onclick="event.stopPropagation(); adicionarEventoCalendario('${e.id}')">Calendário</button><button type="button" class="botao-whatsapp" onclick="event.stopPropagation(); compartilharEventoWhatsApp('${e.id}')">WhatsApp</button>${localMapa?`<button type="button" class="botao-mapa" onclick="event.stopPropagation(); abrirMapaEvento('${e.id}')">Mapa</button>`:""}</div>`;
       const acoes=modoP3&&areaAdministrativa?`<div class="acoes-card"><button class="botao-editar" onclick="event.stopPropagation(); iniciarEdicao('${e.id}')">Editar</button><button class="botao-secundario" onclick="event.stopPropagation(); duplicarEvento('${e.id}')">Duplicar</button><button class="botao-excluir" type="button" title="Excluir cartão" aria-label="Excluir cartão" onclick="event.stopPropagation(); excluirEvento('${e.id}')">Excluir</button></div>`:"";
-      card.innerHTML=`${data===hoje?'<span class="selo-hoje">Hoje</span>':""}<div class="evento-topo"><span class="evento-data">${escaparHTML(formatarPeriodoHorario(e))}</span><span class="evento-tipo">${escaparHTML(e.tipo||"Outros")}</span></div><span class="evento-esquadrao">${escaparHTML(obterTextoEsquadrao(obterEsquadrao(e)))}</span><div class="evento-nome">${escaparHTML(e.nome)}</div><div class="evento-local">${escaparHTML(e.local||"")}</div><div class="evento-metadados">${metadado("Município",e.municipio)}${metadado("OSv/NSv",e.ordemServico)}${metadado("Efetivo",e.efetivo)}${metadado("Observações",e.observacoes)}</div>${acoesPublicas}${acoes}`;
+      card.innerHTML=`${data===hoje?'<span class="selo-hoje">Hoje</span>':""}<div class="evento-topo"><span class="evento-data">${escaparHTML(formatarPeriodoHorario(e))}</span><span class="evento-tipo">${escaparHTML(e.tipo||"Outros")}</span></div><span class="evento-esquadrao">${escaparHTML(obterTextoEsquadrao(obterEsquadrao(e)))}</span><div class="evento-nome">${escaparHTML(e.nome)}</div><div class="evento-local">${escaparHTML(e.local||"")}</div><div class="evento-metadados">${metadado("Município",e.municipio)}${metadado("OSv/NSv",e.ordemServico)}${metadado("Efetivo",textoEfetivo(e))}${metadado("Observações",e.observacoes)}</div>${acoesPublicas}${acoes}`;
       grade.appendChild(card);
     });
     grupo.appendChild(grade); listaEventos.appendChild(grupo);
   });
 }
 
+const modelosEvento={
+  polost:{nome:"POLOST",tipo:"POLOST"},
+  futebol:{nome:"FUTEBOL",tipo:"Jogos de Futebol"},
+  visitacao:{nome:"Visitação",tipo:"Dragões, Representações e Outros"},
+  cavalgada:{nome:"CAVALGADA",tipo:"Cavalgadas"},
+  deslocamento:{nome:"Deslocamento operacional",tipo:"Viagens e Deslocamentos Operacionais"}
+};
+
+window.aplicarModeloEvento=function(){
+  if(!modoP3) return;
+  const modelo=modelosEvento[$("modeloEvento")?.value]; if(!modelo){ alert("Selecione um modelo de evento."); return; }
+  if($("nomeEvento")) $("nomeEvento").value=modelo.nome;
+  if($("tipoEvento")) $("tipoEvento").value=modelo.tipo;
+  if(mensagem) mensagem.textContent="Modelo aplicado. Complete data, horário, local e efetivo.";
+  $("dataInicial")?.focus();
+};
+
 function lerFormulario(){
   const dataInicial=$("dataInicial")?.value, dataFinal=dataInicial;
+  const efetivoConjuntos=numeroInteiro($("conjuntosEvento")?.value), efetivoMEs=numeroInteiro($("mesEvento")?.value), efetivoEquinos=numeroInteiro($("equinosEvento")?.value), efetivoOutros=$("efetivoEvento")?.value.trim()||"";
   return {
     dataInicial,dataFinal,horaInicial:$("horaInicial")?.value||"",horaFinal:$("horaFinal")?.value||"",
     nome:$("nomeEvento")?.value.trim()||"",local:$("localEvento")?.value.trim()||"",
     municipio:$("municipioEvento")?.value.trim()||"",ordemServico:$("ordemServicoEvento")?.value.trim()||"",
-    efetivo:$("efetivoEvento")?.value.trim()||"",observacoes:$("observacoesEvento")?.value.trim()||"",
+    efetivoConjuntos,efetivoMEs,efetivoEquinos,efetivoOutros,
+    efetivo:montarTextoEfetivo({conjuntos:efetivoConjuntos,mes:efetivoMEs,equinos:efetivoEquinos,outros:efetivoOutros}),observacoes:$("observacoesEvento")?.value.trim()||"",
     tipo:$("tipoEvento")?.value||"",esquadrao:$("esquadraoEvento")?.value||"1"
   };
 }
@@ -515,7 +640,8 @@ window.salvarEvento=async function(){
 
 window.iniciarEdicao=function(id){
   if(!modoP3) return; const e=eventos.find(item=>item.id===id); if(!e) return; eventoEmEdicaoId=id;
-  const valores={dataInicial:obterDataInicial(e),horaInicial:obterHoraInicial(e),horaFinal:obterHoraFinal(e),nomeEvento:e.nome||"",localEvento:e.local||"",municipioEvento:e.municipio||"",ordemServicoEvento:e.ordemServico||"",efetivoEvento:e.efetivo||"",observacoesEvento:e.observacoes||"",tipoEvento:e.tipo||"POLOST",esquadraoEvento:obterEsquadrao(e)};
+  const efetivo=obterEfetivoEstruturado(e);
+  const valores={dataInicial:obterDataInicial(e),horaInicial:obterHoraInicial(e),horaFinal:obterHoraFinal(e),nomeEvento:e.nome||"",localEvento:e.local||"",municipioEvento:e.municipio||"",ordemServicoEvento:e.ordemServico||"",conjuntosEvento:efetivo.conjuntos||"",mesEvento:efetivo.mes||"",equinosEvento:efetivo.equinos||"",efetivoEvento:outrosEfetivoLegado(e),observacoesEvento:e.observacoes||"",tipoEvento:e.tipo||"POLOST",esquadraoEvento:obterEsquadrao(e)};
   Object.entries(valores).forEach(([idCampo,valor])=>{ if($(idCampo)) $(idCampo).value=valor; });
   if(tituloFormulario) tituloFormulario.textContent="Editar evento — P3"; if(botaoSalvar) botaoSalvar.textContent="Salvar alterações";
   if(botaoCancelarEdicao) botaoCancelarEdicao.hidden=false; if(botaoFecharEdicao) botaoFecharEdicao.hidden=false;
@@ -530,14 +656,15 @@ window.iniciarEdicao=function(id){
 
 window.duplicarEvento=function(id){
   if(!modoP3) return; const e=eventos.find(item=>item.id===id); if(!e) return; cancelarEdicao();
-  const valores={dataInicial:obterDataInicial(e),horaInicial:obterHoraInicial(e),horaFinal:obterHoraFinal(e),nomeEvento:`${e.nome||"Evento"} (cópia)`,localEvento:e.local||"",municipioEvento:e.municipio||"",ordemServicoEvento:e.ordemServico||"",efetivoEvento:e.efetivo||"",observacoesEvento:e.observacoes||"",tipoEvento:e.tipo||"POLOST",esquadraoEvento:obterEsquadrao(e)};
+  const efetivo=obterEfetivoEstruturado(e);
+  const valores={dataInicial:obterDataInicial(e),horaInicial:obterHoraInicial(e),horaFinal:obterHoraFinal(e),nomeEvento:`${e.nome||"Evento"} (cópia)`,localEvento:e.local||"",municipioEvento:e.municipio||"",ordemServicoEvento:e.ordemServico||"",conjuntosEvento:efetivo.conjuntos||"",mesEvento:efetivo.mes||"",equinosEvento:efetivo.equinos||"",efetivoEvento:outrosEfetivoLegado(e),observacoesEvento:e.observacoes||"",tipoEvento:e.tipo||"POLOST",esquadraoEvento:obterEsquadrao(e)};
   Object.entries(valores).forEach(([idCampo,valor])=>{ if($(idCampo)) $(idCampo).value=valor; });
   if(mensagem) mensagem.textContent="Cópia preparada. Revise os dados e clique em Adicionar."; areaAdministrativa?.scrollIntoView({behavior:"smooth"});
 };
 
 function cancelarEdicao(){
   eventoEmEdicaoId=null;
-  ["dataInicial","horaInicial","horaFinal","nomeEvento","localEvento","municipioEvento","ordemServicoEvento","efetivoEvento","observacoesEvento"].forEach(id=>{ if($(id)) $(id).value=""; });
+  ["dataInicial","horaInicial","horaFinal","nomeEvento","localEvento","municipioEvento","ordemServicoEvento","conjuntosEvento","mesEvento","equinosEvento","efetivoEvento","observacoesEvento","modeloEvento"].forEach(id=>{ if($(id)) $(id).value=""; });
   if($("esquadraoEvento")) $("esquadraoEvento").value="1";
   if(tituloFormulario) tituloFormulario.textContent="Adicionar evento — P3"; if(botaoSalvar) botaoSalvar.textContent="Adicionar";
   if(botaoCancelarEdicao) botaoCancelarEdicao.hidden=true; if(botaoFecharEdicao) botaoFecharEdicao.hidden=true;
@@ -599,9 +726,10 @@ function analisarTextoProgramacao(texto){
     const horarios=extrairHorario(limpa);
     const ordem=(limpa.match(/\b(?:OSv|NSv)\s*\d+\b/i)||[])[0]||"";
     const efetivos=limpa.match(/\b\d{1,2}\s*(?:Conj|MEs?|Equinos?|equino)\b/gi)||[];
+    const efetivoTexto=efetivos.join(" · "), efetivoEstruturado=extrairEfetivoTexto(efetivoTexto);
     const municipio=(limpa.match(/[A-Za-zÀ-ÿ ]+\/RS\b/)||[])[0]?.trim()||"";
     const nome=primeiro.replace(/^(POLOST|FUTEBOL|OPERAÇÃO CONVERGÊNCIA|PASSEIO A CAVALO|Visitação)\s*[-–:]?\s*/i,(m)=>m.replace(/\s*[-–:]?\s*$/," - ")).replace(/ - $/,"").trim();
-    const evento={...contexto,dataFinal:contexto.dataInicial,...horarios,nome,tipo:detectarTipo(limpa),ordemServico:ordem,efetivo:efetivos.join(" · "),municipio,local:"",observacoes:partes.slice(1).filter(p=>!p.match(/\b(?:OSv|NSv)\s*\d+/i)).join(" · "),linha:indice+1};
+    const evento={...contexto,dataFinal:contexto.dataInicial,...horarios,nome,tipo:detectarTipo(limpa),ordemServico:ordem,efetivoConjuntos:efetivoEstruturado.conjuntos,efetivoMEs:efetivoEstruturado.mes,efetivoEquinos:efetivoEstruturado.equinos,efetivoOutros:"",efetivo:efetivoTexto,municipio,local:"",observacoes:partes.slice(1).filter(p=>!p.match(/\b(?:OSv|NSv)\s*\d+/i)).join(" · "),linha:indice+1};
     evento.erro=validarEvento(evento); evento.duplicado=!!encontrarDuplicado(evento); resultado.push(evento);
   });
   const chaves=new Set(); resultado.forEach(e=>{ const chave=chaveDuplicidade(e); if(chaves.has(chave)) e.duplicado=true; chaves.add(chave); });
@@ -649,7 +777,7 @@ function textoAgenda(){
   eventosFiltradosAtuais.forEach(e=>{
     const data=obterDataInicial(e); if(data!==dataAnterior){ texto+=`*${formatarData(data)} — ${obterTextoEsquadrao(obterEsquadrao(e))}*\n`; dataAnterior=data; }
     texto+=`• *${e.nome}* | ${formatarPeriodoHorario(e)}`;
-    if(e.local) texto+=` | ${e.local}`; if(e.municipio) texto+=` | ${e.municipio}`; if(e.efetivo) texto+=` | ${e.efetivo}`; if(e.ordemServico) texto+=` | *${e.ordemServico}*`; if(e.observacoes) texto+=` | ${e.observacoes}`; texto+="\n";
+    if(e.local) texto+=` | ${e.local}`; if(e.municipio) texto+=` | ${e.municipio}`; if(textoEfetivo(e)) texto+=` | ${textoEfetivo(e)}`; if(e.ordemServico) texto+=` | *${e.ordemServico}*`; if(e.observacoes) texto+=` | ${e.observacoes}`; texto+="\n";
   }); return texto;
 }
 
@@ -731,7 +859,7 @@ function criarPDFAgenda(titulo){
   function desenharEvento(e){
     const nome=quebrarLinhaPDF(e.nome||"Evento sem nome",61,2);
     const local=quebrarLinhaPDF([e.local,e.municipio].filter(Boolean).join(" - "),79,2);
-    const recursos=quebrarLinhaPDF([e.efetivo,e.ordemServico].filter(Boolean).join(" | "),79,2);
+    const recursos=quebrarLinhaPDF([textoEfetivo(e),e.ordemServico].filter(Boolean).join(" | "),79,2);
     const observacoes=quebrarLinhaPDF(e.observacoes||"",79,2);
     const linhasDetalhe=local.length+recursos.length+observacoes.length;
     const altura=48+(nome.length-1)*11+linhasDetalhe*9;
@@ -829,7 +957,7 @@ modoVisualizacao?.addEventListener("change",()=>{
   mostrarPassados=false; renderizar();
 });
 dataReferencia?.addEventListener("change",renderizar);
-filtroTipo?.addEventListener("change",renderizar); filtroEsquadrao?.addEventListener("change",renderizar);
+filtroTipo?.addEventListener("change",renderizar); filtroEsquadrao?.addEventListener("change",renderizar); filtroMunicipio?.addEventListener("change",renderizar);
 pesquisa?.addEventListener("input",()=>{ clearTimeout(debounceId); debounceId=setTimeout(renderizar,180); });
 $("filtroAuditoriaTexto")?.addEventListener("input",()=>{ clearTimeout(debounceId); debounceId=setTimeout(renderizarAuditoria,180); });
 $("filtroAuditoriaStatus")?.addEventListener("change",renderizarAuditoria);
