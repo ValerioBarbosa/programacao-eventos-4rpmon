@@ -397,18 +397,6 @@ function listaResumoRelatorio(titulo,itens){
   return `<details class="grupo-relatorio"><summary>${escaparHTML(titulo)} <span>${itens.length}</span></summary><div>${itens.length?itens.map(([rotulo,total])=>`<p><span>${escaparHTML(rotulo)}</span><strong>${total}</strong></p>`).join(""):"<p>Sem registros</p>"}</div></details>`;
 }
 
-function campoCSV(valor){
-  const texto=String(valor??""); return /[";\n]/.test(texto)?`"${texto.replaceAll('"','""')}"`:texto;
-}
-
-window.baixarRelatorioAtualCSV=function(){
-  const lista=eventosFiltradosAtuais, {titulo}=intervaloVisualizacao(), linhas=[["Data","Horário","Evento","Tipo","Esquadrão","Município","Local","Conjuntos","MEs","Equinos","Outros recursos","OSv/NSv"]];
-  lista.forEach(e=>{ const efetivo=obterEfetivoEstruturado(e); linhas.push([formatarData(obterDataInicial(e)),formatarPeriodoHorario(e),e.nome,e.tipo,obterTextoEsquadrao(obterEsquadrao(e)),e.municipio,e.local,efetivo.conjuntos,efetivo.mes,efetivo.equinos,outrosEfetivoLegado(e),e.ordemServico]); });
-  const conteudo="\uFEFF"+linhas.map(linha=>linha.map(campoCSV).join(";")).join("\r\n");
-  const periodo=normalizar(titulo).replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,42);
-  baixarArquivo(`relatorio-operacional-${periodo||dataLocalISO()}.csv`,conteudo,"text/csv;charset=utf-8");
-};
-
 function registrarBackupAutomatico(){
   if(!auth.currentUser || !eventos.length) return;
   try{
