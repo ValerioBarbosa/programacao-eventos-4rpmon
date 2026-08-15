@@ -1322,10 +1322,43 @@ body {
   white-space: nowrap;
 }
 
+.blocos-indicadores,
+.grupo-indicadores-operacionais {
+  display: grid;
+}
+
+.blocos-indicadores {
+  gap: 18px;
+}
+
+.grupo-indicadores-operacionais {
+  gap: 9px;
+}
+
+.titulo-grupo-indicadores {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: #17375e;
+  font-size: 1rem;
+}
+
+.titulo-grupo-indicadores::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #dbe3ea;
+}
+
 .grade-indicadores {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
+}
+
+.grade-indicadores.efetivo {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .indicador-operacional {
@@ -1614,7 +1647,8 @@ body {
 }
 
 @media (max-width: 900px) {
-  .grade-indicadores {
+  .grade-indicadores,
+  .grade-indicadores.efetivo {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1643,6 +1677,7 @@ body {
   }
 
   .grade-indicadores,
+  .grade-indicadores.efetivo,
   .quebra-indicadores,
   .filtros-auditoria,
   .detalhes-grid,
