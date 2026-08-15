@@ -394,7 +394,7 @@ function agruparQuantidade(lista,obterChave){
 }
 
 function listaResumoRelatorio(titulo,itens){
-  return `<details class="grupo-relatorio"><summary>${escaparHTML(titulo)} <span>${itens.length}</span></summary><div>${itens.length?itens.map(([rotulo,total])=>`<p><span>${escaparHTML(rotulo)}</span><strong>${total}</strong></p>`).join(""):"<p>Sem registros</p>"}</div></details>`;
+  return `<details class="grupo-relatorio"><summary>${escaparHTML(titulo)} <span>${itens.length}</span></summary><div>${itens.length?itens.map(([rotulo,total])=>`<p><span>${escaparHTML(rotulo)}:</span><strong>${total} ${total===1?"evento":"eventos"}</strong></p>`).join(""):"<p>Sem registros</p>"}</div></details>`;
 }
 
 function registrarBackupAutomatico(){
