@@ -11,10 +11,16 @@ const nomesMeses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho
 const classesPorTipo = {
   "POLOST":"tipo-01", "Operações":"tipo-02", "Manifestação Social":"tipo-03",
   "Jogos de Futebol":"tipo-04", "Passeio a Cavalo":"tipo-05", "Carnaval":"tipo-06",
-  "Cavalgadas":"tipo-07", "Rodeios":"tipo-08", "Dragões, Representações e Outros":"tipo-09",
-  "Clarim, Formaturas e Reuniões":"tipo-10", "Shows e Eventos":"tipo-11",
+  "Cavalgadas":"tipo-07", "Rodeios":"tipo-08", "Dragões Farroupilha":"tipo-09",
+  "Formaturas":"tipo-10", "Shows e Eventos":"tipo-11",
   "Empréstimo de VTR ou CAM BOX":"tipo-12", "Transporte de Equinos e Provas":"tipo-13",
-  "Viagens e Deslocamentos Operacionais":"tipo-14"
+  "Viagens e Deslocamentos Operacionais":"tipo-14", "Visitação RBG":"tipo-15",
+  "Dragões, Representações e Outros":"tipo-09", "Clarim, Formaturas e Reuniões":"tipo-10"
+};
+
+const tiposLegados = {
+  "Dragões, Representações e Outros":"Dragões Farroupilha",
+  "Clarim, Formaturas e Reuniões":"Formaturas"
 };
 
 let eventos = [];
@@ -73,6 +79,12 @@ function escaparHTML(texto){
 
 function normalizar(texto){
   return String(texto ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/\s+/g," ").trim();
+}
+
+function normalizarTipoEvento(tipo,nome=""){
+  const tipoAtual=String(tipo||"").trim();
+  if((tipoAtual==="Dragões, Representações e Outros" || tipoAtual==="Dragões Farroupilha") && normalizar(nome).includes("visitacao")) return "Visitação RBG";
+  return tiposLegados[tipoAtual] || tipoAtual;
 }
 
 function numeroInteiro(valor){
@@ -425,7 +437,10 @@ window.baixarBackupJSON=function(){
 function iniciarEscutaEventos(){
   renderizarCarregamento();
   onSnapshot(query(collection(db,"eventos")), snapshot => {
-    eventos=snapshot.docs.map(documento => ({id:documento.id,...documento.data()}));
+    eventos=snapshot.docs.map(documento => {
+      const dados=documento.data();
+      return {id:documento.id,...dados,tipo:normalizarTipoEvento(dados.tipo,dados.nome)};
+    });
     primeiraCargaConcluida=true; sincronizarOpcoesAno(); sincronizarOpcoesMunicipio(); renderizar(); renderizarAuditoria(); registrarBackupAutomatico();
     if(eventoDetalhePendente){ const id=eventoDetalhePendente; eventoDetalhePendente=null; setTimeout(()=>window.abrirDetalhesEvento(id),100); }
   }, () => {
@@ -547,7 +562,7 @@ function renderizar(){
 const modelosEvento={
   polost:{nome:"POLOST",tipo:"POLOST"},
   futebol:{nome:"FUTEBOL",tipo:"Jogos de Futebol"},
-  visitacao:{nome:"Visitação",tipo:"Dragões, Representações e Outros"},
+  visitacao:{nome:"Visitação RBG",tipo:"Visitação RBG"},
   cavalgada:{nome:"CAVALGADA",tipo:"Cavalgadas"},
   deslocamento:{nome:"Deslocamento operacional",tipo:"Viagens e Deslocamentos Operacionais"}
 };
@@ -695,8 +710,10 @@ function detectarTipo(texto){
   if(t.includes("polost")) return "POLOST"; if(t.includes("futebol")) return "Jogos de Futebol";
   if(t.includes("passeio a cavalo")) return "Passeio a Cavalo"; if(t.includes("operacao")) return "Operações";
   if(t.includes("cavalgada")) return "Cavalgadas"; if(t.includes("rodeio")) return "Rodeios";
-  if(t.includes("visitacao") || t.includes("visitação")) return "Dragões, Representações e Outros";
-  return "Dragões, Representações e Outros";
+  if(t.includes("visitacao")) return "Visitação RBG";
+  if(t.includes("formatura") || t.includes("clarim")) return "Formaturas";
+  if(t.includes("dragao") || t.includes("farroupilha") || t.includes("representacao")) return "Dragões Farroupilha";
+  return "Dragões Farroupilha";
 }
 function limparMarcacao(texto){ return texto.replace(/^[\s\-*•]+/,"").replace(/\*/g,"").trim(); }
 function analisarTextoProgramacao(texto){
