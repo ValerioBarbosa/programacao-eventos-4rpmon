@@ -615,6 +615,7 @@ textarea:focus {
 .tipo-12 { border-left-color: #64748b; }
 .tipo-13 { border-left-color: #b45309; }
 .tipo-14 { border-left-color: #0f766e; }
+.tipo-15 { border-left-color: #4338ca; }
 .tipo-outros { border-left-color: #94a3b8; }
 
 .tipo-01 .evento-tipo { color: #c82032; background: #fde8ea; }
@@ -631,6 +632,7 @@ textarea:focus {
 .tipo-12 .evento-tipo { color: #475569; background: #eef1f4; }
 .tipo-13 .evento-tipo { color: #b45309; background: #fdedd9; }
 .tipo-14 .evento-tipo { color: #0f766e; background: #dcfaf6; }
+.tipo-15 .evento-tipo { color: #4338ca; background: #eef2ff; }
 .tipo-outros .evento-tipo { color: #64748b; background: #eef1f4; }
 
 /* =========================
