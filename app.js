@@ -343,16 +343,27 @@ function renderizarIndicadores(filtrados=[]){
   const ativos=eventos.filter(e=>!e.excluido&&obterDataInicial(e));
   const hoje=dataLocalISO(), diaSemana=new Date(`${hoje}T12:00:00`).getDay()||7, inicioSemana=somarDias(hoje,1-diaSemana), fimSemana=somarDias(inicioSemana,6), fim30=somarDias(hoje,29);
   const efetivo=contabilizarEfetivo(filtrados);
-  const cards=[
+  const cardsEventos=[
     ["Hoje",contarNoIntervalo(ativos,hoje,hoje),"eventos no dia"],
     ["Esta semana",contarNoIntervalo(ativos,inicioSemana,fimSemana),`${formatarData(inicioSemana)} a ${formatarData(fimSemana)}`],
     ["Próximos 30 dias",contarNoIntervalo(ativos,hoje,fim30),`até ${formatarData(fim30)}`],
-    ["Resultado atual",filtrados.length,"após período e filtros"],
+    ["Resultado atual",filtrados.length,"após período e filtros"]
+  ];
+  const cardsEfetivo=[
     ["Conjuntos empregados",efetivo.conjuntos,"soma do campo Efetivo"],
-    ["MEs empregados",efetivo.mes,"soma do campo Efetivo"],
+    ["Militares empregados",efetivo.mes,"soma do campo Efetivo"],
     ["Equinos empregados",efetivo.equinos,"soma do campo Efetivo"]
   ];
-  gradeIndicadores.innerHTML=cards.map(([rotulo,valor,detalhe])=>`<article class="indicador-operacional"><span>${escaparHTML(rotulo)}</span><strong>${valor}</strong><small>${escaparHTML(detalhe)}</small></article>`).join("");
+  const montarCards=cards=>cards.map(([rotulo,valor,detalhe])=>`<article class="indicador-operacional"><span>${escaparHTML(rotulo)}</span><strong>${valor}</strong><small>${escaparHTML(detalhe)}</small></article>`).join("");
+  gradeIndicadores.innerHTML=`
+    <section class="grupo-indicadores-operacionais" aria-labelledby="tituloGrupoEventos">
+      <h3 class="titulo-grupo-indicadores" id="tituloGrupoEventos">Eventos</h3>
+      <div class="grade-indicadores eventos">${montarCards(cardsEventos)}</div>
+    </section>
+    <section class="grupo-indicadores-operacionais" aria-labelledby="tituloGrupoEfetivo">
+      <h3 class="titulo-grupo-indicadores" id="tituloGrupoEfetivo">Efetivo</h3>
+      <div class="grade-indicadores efetivo">${montarCards(cardsEfetivo)}</div>
+    </section>`;
   const esquadroes=agruparQuantidade(filtrados,e=>obterTextoEsquadrao(obterEsquadrao(e))), tipos=agruparQuantidade(filtrados,e=>e.tipo||"Outros"), municipios=agruparQuantidade(filtrados,e=>e.municipio||"Não informado");
   quebraIndicadores.innerHTML=`<div class="grade-relatorio">${listaResumoRelatorio("Por esquadrão",esquadroes)}${listaResumoRelatorio("Por tipo",tipos)}${listaResumoRelatorio("Por município",municipios)}</div>`;
   if(atualizacaoIndicadores) atualizacaoIndicadores.textContent=`Atualizado às ${new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}`;
