@@ -342,12 +342,13 @@ function intervaloVisualizacao(){
 function contarNoIntervalo(lista,inicio,fim){ return lista.filter(e=>eventoNoIntervalo(e,inicio,fim)).length; }
 
 function contabilizarEfetivo(lista=[]){
-  const totais={conjuntos:0,mes:0,equinos:0};
-  lista.forEach(evento=>{
-    const efetivo=obterEfetivoEstruturado(evento);
-    totais.conjuntos+=efetivo.conjuntos; totais.mes+=efetivo.mes; totais.equinos+=efetivo.equinos;
-  });
-  return totais;
+  return lista.reduce((totais,evento)=>{
+    const {conjuntos,mes,equinos}=obterEfetivoEstruturado(evento);
+    totais.conjuntos+=numeroInteiro(conjuntos);
+    totais.mes+=numeroInteiro(mes);
+    totais.equinos+=numeroInteiro(equinos);
+    return totais;
+  },{conjuntos:0,mes:0,equinos:0});
 }
 
 function renderizarIndicadores(filtrados=[]){
@@ -362,9 +363,9 @@ function renderizarIndicadores(filtrados=[]){
     ["Resultado atual",filtrados.length,"após período e filtros"]
   ];
   const cardsEfetivo=[
-    ["Conjuntos empregados",efetivo.conjuntos,"soma do campo Efetivo"],
-    ["Militares empregados",efetivo.mes,"soma do campo Efetivo"],
-    ["Equinos empregados",efetivo.equinos,"soma do campo Efetivo"]
+    ["Conjuntos empregados",efetivo.conjuntos,"soma do campo Conjuntos"],
+    ["Militares empregados",efetivo.mes,"soma do campo MEs"],
+    ["Equinos empregados",efetivo.equinos,"soma do campo Equinos"]
   ];
   const montarCards=cards=>cards.map(([rotulo,valor,detalhe])=>`<article class="indicador-operacional"><span>${escaparHTML(rotulo)}</span><strong>${valor}</strong><small>${escaparHTML(detalhe)}</small></article>`).join("");
   gradeIndicadores.innerHTML=`
@@ -943,7 +944,9 @@ window.instalarAplicativo=async function(){
   alert("No iPhone: toque em Compartilhar e depois em “Adicionar à Tela de Início”. No Android: abra o menu do navegador e escolha “Instalar aplicativo”.");
 };
 
-if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{})); }
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js",{updateViaCache:"none"}).then(registro=>registro.update()).catch(()=>{}));
+}
 document.addEventListener("keydown",evento=>{ if(evento.key==="Escape") window.fecharDetalhesEvento(); });
 
 mesSelecionado?.addEventListener("change",()=>{
