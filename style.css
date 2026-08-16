@@ -778,6 +778,14 @@ footer {
   color: var(--azul);
 }
 
+.caixa-senha label {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--azul);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
 .caixa-senha input {
   width: 100%;
   margin-bottom: 12px;

@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="style.css?v=20260814-6">
+<link rel="stylesheet" href="style.css?v=20260815-7">
 </head>
 <body>
 <header>
@@ -279,18 +279,20 @@ Modo P3 ativo
 </main>
 <footer id="rodapeAgenda">Programação Operacional 4ºRPMon — Painel do P3 · 2026</footer>
 
-<div class="sobreposicao" id="sobreposicaoSenha" style="display:none;">
+<div class="sobreposicao" id="sobreposicaoSenha" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="tituloAcessoP3">
 <div class="caixa-senha">
-<h3>Acesso restrito — P3</h3>
+<h3 id="tituloAcessoP3">Acesso restrito — P3</h3>
+<label for="campoEmail">E-mail</label>
 <input id="campoEmail" type="email" placeholder="E-mail" autocomplete="username">
+<label for="campoSenha">Senha</label>
 <input id="campoSenha" type="password" placeholder="Senha" autocomplete="current-password" onkeydown="if(event.key==='Enter') validarSenha()">
 <div class="linha-botoes">
-<button class="botao-cancelar" onclick="fecharCaixaSenha()">Cancelar</button>
-<button onclick="validarSenha()">Entrar</button>
+<button class="botao-cancelar" type="button" onclick="fecharCaixaSenha()">Cancelar</button>
+<button type="button" onclick="validarSenha()">Entrar</button>
 </div>
 </div>
 </div>
 
-<script type="module" src="app.js?v=20260814-4"></script>
+<script type="module" src="app.js?v=20260815-2"></script>
 </body>
 </html>
