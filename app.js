@@ -32,6 +32,7 @@ let primeiraCargaConcluida = false;
 let debounceId = null;
 let ultimoElementoComFoco = null;
 let ultimoElementoComFocoEdicao = null;
+let ultimoElementoComFocoDetalhes = null;
 let mostrarPassados = false;
 let promptInstalacao = null;
 let eventoDetalhePendente = new URLSearchParams(window.location.search).get("evento");
@@ -80,6 +81,12 @@ function escaparHTML(texto){
 function normalizar(texto){
   return String(texto ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/\s+/g," ").trim();
 }
+
+function nomeMunicipio(valor=""){
+  return String(valor??"").replace(/\s*(?:\/|-)\s*RS\s*$/i,"").replace(/\s+/g," ").trim();
+}
+
+function chaveMunicipio(valor=""){ return normalizar(nomeMunicipio(valor)); }
 
 function normalizarTipoEvento(tipo,nome=""){
   const tipoAtual=String(tipo||"").trim();
@@ -208,11 +215,16 @@ function garantirModalDetalhes(){
 
 window.abrirDetalhesEvento=function(id){
   const e=obterEvento(id); if(!e) return;
+  ultimoElementoComFocoDetalhes=document.activeElement;
   const modal=garantirModalDetalhes(), conteudo=$("conteudoDetalhesEvento"), local=obterLocalCompleto(e);
   conteudo.innerHTML=`<span class="evento-tipo ${obterClasseTipo(e.tipo)}">${escaparHTML(e.tipo||"Outros")}</span><h2 id="modalEventoTitulo">${escaparHTML(e.nome||"Evento")}</h2><p class="detalhe-data">${escaparHTML(formatarData(obterDataInicial(e)))} · ${escaparHTML(formatarPeriodoHorario(e))}</p><div class="detalhes-grid">${metadado("Esquadrão",obterTextoEsquadrao(obterEsquadrao(e)))}${metadado("Local",e.local)}${metadado("Município",e.municipio)}${metadado("Efetivo / recursos",textoEfetivo(e))}${metadado("OSv / NSv",e.ordemServico)}${metadado("Observações",e.observacoes)}</div><div class="acoes-detalhes"><button type="button" onclick="copiarLinkEvento('${e.id}')">Copiar link</button><button class="botao-whatsapp" type="button" onclick="compartilharEventoWhatsApp('${e.id}')">WhatsApp</button><button class="botao-secundario" type="button" onclick="adicionarEventoCalendario('${e.id}')">Adicionar ao calendário</button>${local?`<button class="botao-mapa" type="button" onclick="abrirMapaEvento('${e.id}')">Abrir no Google Maps</button><button class="botao-mapa" type="button" onclick="tracarRotaEvento('${e.id}')">Traçar rota</button>`:""}</div>`;
   modal.style.display="flex"; document.body.classList.add("modal-aberto"); modal.querySelector(".fechar-detalhes")?.focus();
 };
-window.fecharDetalhesEvento=function(){ const modal=$("modalDetalhesEvento"); if(modal) modal.style.display="none"; document.body.classList.remove("modal-aberto"); };
+window.fecharDetalhesEvento=function(){
+  const modal=$("modalDetalhesEvento"); if(modal) modal.style.display="none";
+  document.body.classList.remove("modal-aberto");
+  ultimoElementoComFocoDetalhes?.focus(); ultimoElementoComFocoDetalhes=null;
+};
 window.copiarLinkEvento=async function(id){ const e=obterEvento(id); if(!e) return; const ok=await copiarTexto(urlPublicaEvento(e)); if(statusAgenda) statusAgenda.textContent=ok?"Link do evento copiado.":"Não foi possível copiar o link."; };
 window.compartilharEventoWhatsApp=function(id){ const e=obterEvento(id); if(e) window.open(`https://wa.me/?text=${encodeURIComponent(textoEvento(e))}`,"_blank","noopener,noreferrer"); };
 window.adicionarEventoCalendario=function(id){ const e=obterEvento(id); if(!e) return; baixarArquivo(`evento-4rpmon-${obterDataInicial(e)}.ics`,criarICS(e),"text/calendar;charset=utf-8"); };
@@ -248,9 +260,14 @@ function sincronizarOpcoesAno(){
 function sincronizarOpcoesMunicipio(){
   if(!filtroMunicipio) return;
   const selecionado=filtroMunicipio.value||"todos";
-  const municipios=[...new Set(eventos.filter(e=>!e.excluido&&String(e.municipio||"").trim()).map(e=>String(e.municipio).trim()))].sort((a,b)=>a.localeCompare(b,"pt-BR"));
-  filtroMunicipio.innerHTML='<option value="todos">Todos os municípios</option>'+municipios.map(municipio=>`<option value="${escaparHTML(municipio)}">${escaparHTML(municipio)}</option>`).join("");
-  filtroMunicipio.value=municipios.includes(selecionado)?selecionado:"todos";
+  const municipios=new Map();
+  eventos.filter(e=>!e.excluido).forEach(e=>{
+    const rotulo=nomeMunicipio(e.municipio), chave=chaveMunicipio(rotulo);
+    if(chave&&!municipios.has(chave)) municipios.set(chave,rotulo);
+  });
+  const opcoes=[...municipios.entries()].sort((a,b)=>a[1].localeCompare(b[1],"pt-BR"));
+  filtroMunicipio.innerHTML='<option value="todos">Todos os municípios</option>'+opcoes.map(([chave,rotulo])=>`<option value="${escaparHTML(chave)}">${escaparHTML(rotulo)}</option>`).join("");
+  filtroMunicipio.value=municipios.has(selecionado)?selecionado:"todos";
 }
 
 function atualizarConfiguracaoAno({preservarData=false}={}){
@@ -377,7 +394,7 @@ function renderizarIndicadores(filtrados=[]){
       <h3 class="titulo-grupo-indicadores" id="tituloGrupoEfetivo">Efetivo</h3>
       <div class="grade-indicadores efetivo">${montarCards(cardsEfetivo)}</div>
     </section>`;
-  const esquadroes=agruparQuantidade(filtrados,e=>obterTextoEsquadrao(obterEsquadrao(e))), tipos=agruparQuantidade(filtrados,e=>e.tipo||"Outros"), municipios=agruparQuantidade(filtrados,e=>e.municipio||"Não informado");
+  const esquadroes=agruparQuantidade(filtrados,e=>obterTextoEsquadrao(obterEsquadrao(e))), tipos=agruparQuantidade(filtrados,e=>e.tipo||"Outros"), municipios=agruparQuantidade(filtrados,e=>nomeMunicipio(e.municipio)||"Não informado");
   quebraIndicadores.innerHTML=`<div class="grade-relatorio">${listaResumoRelatorio("Por esquadrão",esquadroes)}${listaResumoRelatorio("Por tipo",tipos)}${listaResumoRelatorio("Por município",municipios)}</div>`;
   if(atualizacaoIndicadores) atualizacaoIndicadores.textContent=`Atualizado às ${new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}`;
 }
@@ -504,7 +521,7 @@ function renderizar(){
   const filtrados=eventos.filter(e=>{
     if(e.excluido || !obterDataInicial(e) || !eventoNoIntervalo(e,inicio,fim)) return false;
     const haystack=normalizar(`${e.nome} ${e.local} ${e.municipio} ${e.observacoes} ${e.ordemServico} ${textoEfetivo(e)} ${e.tipo}`);
-    return (!termo || haystack.includes(termo)) && (tipo==="todos" || e.tipo===tipo) && (esq==="todos" || obterEsquadrao(e)===esq) && (municipio==="todos" || e.municipio===municipio);
+    return (!termo || haystack.includes(termo)) && (tipo==="todos" || e.tipo===tipo) && (esq==="todos" || obterEsquadrao(e)===esq) && (municipio==="todos" || chaveMunicipio(e.municipio)===municipio);
   }).sort((a,b)=>`${obterDataInicial(a)}${obterHoraInicial(a)}`.localeCompare(`${obterDataInicial(b)}${obterHoraInicial(b)}`));
   eventosFiltradosAtuais=filtrados; totalEventos.textContent=filtrados.length;
   renderizarIndicadores(filtrados);

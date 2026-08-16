@@ -1,10 +1,10 @@
-const CACHE_NAME = "agenda-4rpmon-v17";
+const CACHE_NAME = "agenda-4rpmon-v18";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./admin.html",
-  "./style.css?v=20260814-6",
-  "./app.js?v=20260815-1",
+  "./style.css?v=20260815-7",
+  "./app.js?v=20260815-2",
   "./firebase-config.js",
   "./manifest.webmanifest",
   "./image.png?v=20260814-1",
@@ -24,6 +24,17 @@ self.addEventListener("activate", event => {
   self.clients.claim();
 });
 
+async function buscarEAtualizarCache(request) {
+  try {
+    const response = await fetch(request);
+    const cache = await caches.open(CACHE_NAME);
+    await cache.put(request, response.clone());
+    return response;
+  } catch {
+    return (await caches.match(request)) || Response.error();
+  }
+}
+
 self.addEventListener("fetch", event => {
   const request = event.request;
   if (request.method !== "GET") return;
@@ -42,12 +53,8 @@ self.addEventListener("fetch", event => {
   }
 
   const recursoVersionado = url.searchParams.has("v");
-  event.respondWith(
-    (recursoVersionado ? fetch(request).catch(() => caches.match(request)) : caches.match(request).then(response => response || fetch(request))).then(networkResponse => {
-      if (!networkResponse) return networkResponse;
-      const copia = networkResponse.clone();
-      caches.open(CACHE_NAME).then(cache => cache.put(request, copia));
-      return networkResponse;
-    })
+  event.respondWith(recursoVersionado
+    ? buscarEAtualizarCache(request)
+    : caches.match(request).then(response => response || buscarEAtualizarCache(request))
   );
 });
