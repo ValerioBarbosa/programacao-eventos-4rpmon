@@ -7,23 +7,75 @@ service cloud.firestore {
         && request.auth.token.email == '4rpmon-p3@bm.rs.gov.br';
     }
 
+    function numeroNaturalOpcional(campo) {
+      return !(campo in request.resource.data)
+        || (request.resource.data[campo] is int
+          && request.resource.data[campo] >= 0
+          && request.resource.data[campo] <= 500);
+    }
+
+    function autoriaAtualizacaoValida() {
+      return request.resource.data.atualizadoPor == request.auth.token.email
+        && request.resource.data.atualizadoPorUid == request.auth.uid
+        && request.resource.data.atualizadoEmISO is string;
+    }
+
     function eventoValido() {
       return request.resource.data.nome is string
         && request.resource.data.nome.size() > 0
+        && request.resource.data.nome.size() <= 200
         && (
-          request.resource.data.dataInicial is string
-          || request.resource.data.data is string
+          (request.resource.data.dataInicial is string
+            && request.resource.data.dataInicial.size() == 10)
+          || (request.resource.data.data is string
+            && request.resource.data.data.size() == 10)
         )
         && (
           !('esquadrao' in request.resource.data)
           || request.resource.data.esquadrao in ['1', '2']
-        );
+        )
+        && numeroNaturalOpcional('efetivoConjuntos')
+        && numeroNaturalOpcional('efetivoMEs')
+        && numeroNaturalOpcional('efetivoEquinos')
+        && (!('excluido' in request.resource.data) || request.resource.data.excluido is bool)
+        && (!('historico' in request.resource.data) || (request.resource.data.historico is list && request.resource.data.historico.size() <= 500));
+    }
+
+    function erroClienteValido() {
+      return request.resource.data.keys().hasAll([
+          'contexto', 'mensagem', 'pagina', 'navegador', 'usuario',
+          'usuarioUid', 'ocorridoEm', 'ocorridoEmISO'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'contexto', 'mensagem', 'pagina', 'navegador', 'usuario',
+          'usuarioUid', 'ocorridoEm', 'ocorridoEmISO'
+        ])
+        && request.resource.data.contexto is string
+        && request.resource.data.contexto.size() <= 80
+        && request.resource.data.mensagem is string
+        && request.resource.data.mensagem.size() <= 1000
+        && request.resource.data.pagina is string
+        && request.resource.data.pagina.size() <= 160
+        && request.resource.data.navegador is string
+        && request.resource.data.navegador.size() <= 500
+        && request.resource.data.usuario == request.auth.token.email
+        && request.resource.data.usuarioUid == request.auth.uid
+        && request.resource.data.ocorridoEm is timestamp
+        && request.resource.data.ocorridoEmISO is string;
     }
 
     match /eventos/{eventoId} {
       allow read: if true;
-      allow create, update: if administradorP3() && eventoValido();
+      allow create, update: if administradorP3()
+        && eventoValido()
+        && autoriaAtualizacaoValida();
       allow delete: if false;
+    }
+
+    match /errosCliente/{erroId} {
+      allow read: if administradorP3();
+      allow create: if administradorP3() && erroClienteValido();
+      allow update, delete: if false;
     }
 
     match /{documento=**} {

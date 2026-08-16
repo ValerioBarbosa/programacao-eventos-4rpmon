@@ -1,0 +1,36 @@
+name: Publicar regras do Firestore
+
+on:
+  push:
+    branches: [main]
+    paths: [firestore.rules, firebase.json]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    env:
+      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_AGENDA_4RPMON }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verificar credencial de implantação
+        if: env.FIREBASE_SERVICE_ACCOUNT == ''
+        run: echo "::warning::Configure o secret FIREBASE_SERVICE_ACCOUNT_AGENDA_4RPMON para publicar as regras automaticamente."
+      - uses: actions/setup-node@v4
+        if: env.FIREBASE_SERVICE_ACCOUNT != ''
+        with:
+          node-version: 22
+      - name: Preparar credencial temporária
+        if: env.FIREBASE_SERVICE_ACCOUNT != ''
+        shell: bash
+        run: |
+          credential_file="$RUNNER_TEMP/firebase-service-account.json"
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$credential_file"
+          chmod 600 "$credential_file"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$credential_file" >> "$GITHUB_ENV"
+      - name: Publicar regras
+        if: env.FIREBASE_SERVICE_ACCOUNT != ''
+        run: npx --yes firebase-tools@latest deploy --only firestore:rules --project agenda-4rpmon --non-interactive

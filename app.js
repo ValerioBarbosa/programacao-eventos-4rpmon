@@ -3,9 +3,14 @@ import {
   serverTimestamp, writeBatch,
   auth, onAuthStateChanged, signInWithEmailAndPassword, signOut
 } from "./firebase-config.js";
+import {
+  normalizar, nomeMunicipio, chaveMunicipio, numeroInteiro,
+  extrairEfetivoTexto, obterEfetivoEstruturado, contabilizarEfetivo
+} from "./core.js?v=20260816-1";
 
 const hojeLocal = new Date();
 const anoAtual = hojeLocal.getFullYear();
+const EMAIL_P3 = "4rpmon-p3@bm.rs.gov.br";
 let ano = anoAtual;
 const nomesMeses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const classesPorTipo = {
@@ -36,6 +41,9 @@ let ultimoElementoComFocoDetalhes = null;
 let mostrarPassados = false;
 let promptInstalacao = null;
 let eventoDetalhePendente = new URLSearchParams(window.location.search).get("evento");
+let errosCliente = [];
+let cancelarEscutaErros = null;
+let registrandoErro = false;
 
 const $ = id => document.getElementById(id);
 const mesSelecionado = $("mesSelecionado");
@@ -72,49 +80,17 @@ const ancoraFormularioAdministrativo = $("ancoraFormularioAdministrativo");
 const gradeIndicadores = $("gradeIndicadores");
 const quebraIndicadores = $("quebraIndicadores");
 const atualizacaoIndicadores = $("atualizacaoIndicadores");
+const areaErrosSistema = $("areaErrosSistema");
 
 function escaparHTML(texto){
   return String(texto ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;")
     .replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
 }
 
-function normalizar(texto){
-  return String(texto ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/\s+/g," ").trim();
-}
-
-function nomeMunicipio(valor=""){
-  return String(valor??"").replace(/\s*(?:\/|-)\s*RS\s*$/i,"").replace(/\s+/g," ").trim();
-}
-
-function chaveMunicipio(valor=""){ return normalizar(nomeMunicipio(valor)); }
-
 function normalizarTipoEvento(tipo,nome=""){
   const tipoAtual=String(tipo||"").trim();
   if((tipoAtual==="Dragões, Representações e Outros" || tipoAtual==="Dragões Farroupilha") && normalizar(nome).includes("visitacao")) return "Visitação RBG";
   return tiposLegados[tipoAtual] || tipoAtual;
-}
-
-function numeroInteiro(valor){
-  const numero=Number(valor); return Number.isFinite(numero)&&numero>0?Math.trunc(numero):0;
-}
-
-function extrairEfetivoTexto(texto=""){
-  const totais={conjuntos:0,mes:0,equinos:0};
-  const padroes=[
-    ["conjuntos",/(\d+)\s*conj(?:unto)?s?\b/gi],
-    ["mes",/(\d+)\s*(?:m\.?\s*e\.?s?|militares?\s+estaduais?)\b/gi],
-    ["equinos",/(\d+)\s*(?:equinos?|cavalos?)\b/gi]
-  ];
-  padroes.forEach(([categoria,padrao])=>{
-    for(const correspondencia of String(texto).matchAll(padrao)) totais[categoria]+=numeroInteiro(correspondencia[1]);
-  });
-  return totais;
-}
-
-function obterEfetivoEstruturado(evento={}){
-  const estruturado=["efetivoConjuntos","efetivoMEs","efetivoEquinos"].some(campo=>evento[campo]!==undefined&&evento[campo]!==null&&evento[campo]!=="");
-  if(!estruturado) return extrairEfetivoTexto(evento.efetivo||"");
-  return {conjuntos:numeroInteiro(evento.efetivoConjuntos),mes:numeroInteiro(evento.efetivoMEs),equinos:numeroInteiro(evento.efetivoEquinos)};
 }
 
 function montarTextoEfetivo({conjuntos=0,mes=0,equinos=0,outros=""}={}){
@@ -358,16 +334,6 @@ function intervaloVisualizacao(){
 
 function contarNoIntervalo(lista,inicio,fim){ return lista.filter(e=>eventoNoIntervalo(e,inicio,fim)).length; }
 
-function contabilizarEfetivo(lista=[]){
-  return lista.reduce((totais,evento)=>{
-    const {conjuntos,mes,equinos}=obterEfetivoEstruturado(evento);
-    totais.conjuntos+=numeroInteiro(conjuntos);
-    totais.mes+=numeroInteiro(mes);
-    totais.equinos+=numeroInteiro(equinos);
-    return totais;
-  },{conjuntos:0,mes:0,equinos:0});
-}
-
 function renderizarIndicadores(filtrados=[]){
   if(!gradeIndicadores || !quebraIndicadores) return;
   const ativos=eventos.filter(e=>!e.excluido&&obterDataInicial(e));
@@ -461,7 +427,8 @@ function iniciarEscutaEventos(){
     });
     primeiraCargaConcluida=true; sincronizarOpcoesAno(); sincronizarOpcoesMunicipio(); renderizar(); renderizarAuditoria(); registrarBackupAutomatico();
     if(eventoDetalhePendente){ const id=eventoDetalhePendente; eventoDetalhePendente=null; setTimeout(()=>window.abrirDetalhesEvento(id),100); }
-  }, () => {
+  }, erro => {
+    registrarErroSistema(erro,"carregamento_eventos");
     primeiraCargaConcluida=true;
     if(statusAgenda) statusAgenda.textContent="Falha ao carregar a programação.";
     if(listaEventos) listaEventos.innerHTML='<div class="estado-agenda estado-erro"><strong>Não foi possível carregar os eventos</strong><span>Verifique sua conexão e tente novamente.</span><button type="button" onclick="recarregarAgenda()">Tentar novamente</button></div>';
@@ -494,7 +461,10 @@ if(sobreposicaoSenha){
 }
 
 onAuthStateChanged(auth, usuario => {
-  modoP3=!!usuario; if(!modoP3) cancelarEdicao(); atualizarPermissoes(); renderizar(); if(modoP3) registrarBackupAutomatico();
+  modoP3=String(usuario?.email||"").toLowerCase()===EMAIL_P3;
+  if(usuario && !modoP3) signOut(auth).catch(()=>{});
+  if(!modoP3){ cancelarEdicao(); cancelarEscutaErros?.(); cancelarEscutaErros=null; errosCliente=[]; if(areaErrosSistema) areaErrosSistema.style.display="none"; }
+  atualizarPermissoes(); renderizar(); if(modoP3) registrarBackupAutomatico();
 });
 
 function atualizarPermissoes(){
@@ -648,11 +618,11 @@ window.salvarEvento=async function(){
       await updateDoc(doc(db,"eventos",eventoEmEdicaoId),{...dados,atualizadoEm:serverTimestamp(),atualizadoEmISO:instante,atualizadoPor:usuario.email,atualizadoPorUid:usuario.uid,historico});
       if(mensagem) mensagem.textContent="Evento atualizado com sucesso.";
     }else{
-      await addDoc(collection(db,"eventos"),{...dados,criadoEm:serverTimestamp(),criadoEmISO:instante,criadoPor:usuario.email,criadoPorUid:usuario.uid,atualizadoEmISO:instante,atualizadoPor:usuario.email,historico:[{acao:"criado",em:instante,por:usuario.email,uid:usuario.uid}]});
+      await addDoc(collection(db,"eventos"),{...dados,criadoEm:serverTimestamp(),criadoEmISO:instante,criadoPor:usuario.email,criadoPorUid:usuario.uid,atualizadoEm:serverTimestamp(),atualizadoEmISO:instante,atualizadoPor:usuario.email,atualizadoPorUid:usuario.uid,historico:[{acao:"criado",em:instante,por:usuario.email,uid:usuario.uid}]});
       if(mensagem) mensagem.textContent="Evento adicionado com sucesso.";
     }
     cancelarEdicao(); mesSelecionado.value=Number(dados.dataInicial.split("-")[1])-1;
-  }catch{ alert("Não foi possível salvar o evento. Verifique sua conexão ou as regras do banco."); }
+  }catch(erroCapturado){ registrarErroSistema(erroCapturado,"salvar_evento"); alert("Não foi possível salvar o evento. Verifique sua conexão ou as regras do banco."); }
   setTimeout(()=>{ if(mensagem) mensagem.textContent=""; },3000);
 };
 
@@ -702,8 +672,8 @@ modalEdicaoEvento?.addEventListener("click",evento=>{ if(evento.target===modalEd
 window.excluirEvento=async function(id){
   if(!modoP3) return; const e=eventos.find(item=>item.id===id); if(!e || !confirm(`Excluir o cartão “${e.nome}” da agenda? O registro permanecerá disponível na auditoria.`)) return;
   const usuario=usuarioAtual(), instante=agoraISO(), historico=[...(e.historico||[]),{acao:"excluído",em:instante,por:usuario.email,uid:usuario.uid}];
-  try{ await updateDoc(doc(db,"eventos",id),{excluido:true,excluidoEm:serverTimestamp(),excluidoEmISO:instante,excluidoPor:usuario.email,historico}); }
-  catch{ alert("Não foi possível excluir o cartão."); }
+  try{ await updateDoc(doc(db,"eventos",id),{excluido:true,excluidoEm:serverTimestamp(),excluidoEmISO:instante,excluidoPor:usuario.email,excluidoPorUid:usuario.uid,atualizadoEm:serverTimestamp(),atualizadoEmISO:instante,atualizadoPor:usuario.email,atualizadoPorUid:usuario.uid,historico}); }
+  catch(erroCapturado){ registrarErroSistema(erroCapturado,"arquivar_evento"); alert("Não foi possível excluir o cartão."); }
 };
 window.arquivarEvento=window.excluirEvento;
 
@@ -715,6 +685,55 @@ window.alternarAuditoria=function(){
   if(!modoP3 || !areaAuditoria) return; areaAuditoria.style.display=areaAuditoria.style.display==="none"?"block":"none";
   if(areaAuditoria.style.display==="block"){ renderizarAuditoria(); areaAuditoria.scrollIntoView({behavior:"smooth"}); }
 };
+
+function textoErro(erro){
+  if(erro instanceof Error) return erro.message || erro.name;
+  if(typeof erro==="string") return erro;
+  try{ return JSON.stringify(erro); }catch{ return "Erro não identificado"; }
+}
+
+async function registrarErroSistema(erro,contexto="aplicacao"){
+  if(!modoP3 || !auth.currentUser || registrandoErro) return;
+  const usuario=usuarioAtual(), mensagemErro=textoErro(erro).slice(0,1000);
+  try{
+    registrandoErro=true;
+    await addDoc(collection(db,"errosCliente"),{
+      contexto:String(contexto).slice(0,80), mensagem:mensagemErro,
+      pagina:window.location.pathname.slice(0,160), navegador:navigator.userAgent.slice(0,500),
+      usuario:usuario.email, usuarioUid:usuario.uid,
+      ocorridoEm:serverTimestamp(), ocorridoEmISO:agoraISO()
+    });
+  }catch{ /* O monitor não pode interromper o fluxo principal. */ }
+  finally{ registrandoErro=false; }
+}
+
+function renderizarErrosSistema(){
+  const lista=$("listaErrosSistema"), resumo=$("resumoErrosSistema"); if(!lista || !resumo) return;
+  const ordenados=errosCliente.slice().sort((a,b)=>String(b.ocorridoEmISO||"").localeCompare(String(a.ocorridoEmISO||""))).slice(0,50);
+  resumo.textContent=ordenados.length?`${ordenados.length} falha(s) mais recente(s).`:"Nenhuma falha registrada para usuários P3.";
+  lista.innerHTML=ordenados.length?ordenados.map(erro=>`<details class="item-auditoria item-erro-sistema"><summary><div><strong>${escaparHTML(erro.contexto||"Aplicação")}</strong><span>${escaparHTML(erro.mensagem||"Erro não identificado")}</span></div><time>${erro.ocorridoEmISO?new Date(erro.ocorridoEmISO).toLocaleString("pt-BR"):"data não registrada"}</time></summary><p><b>Página:</b> ${escaparHTML(erro.pagina||"não informada")}</p></details>`).join(""): '<div class="sem-eventos">Sistema sem falhas registradas.</div>';
+}
+
+function iniciarEscutaErros(){
+  if(cancelarEscutaErros || !modoP3) return;
+  cancelarEscutaErros=onSnapshot(query(collection(db,"errosCliente")),snapshot=>{
+    errosCliente=snapshot.docs.map(documento=>({id:documento.id,...documento.data()})); renderizarErrosSistema();
+  },()=>{
+    const resumo=$("resumoErrosSistema"); if(resumo) resumo.textContent="Não foi possível carregar o monitor de erros.";
+  });
+}
+
+window.alternarErrosSistema=function(){
+  if(!modoP3 || !areaErrosSistema) return;
+  areaErrosSistema.style.display=areaErrosSistema.style.display==="none"?"block":"none";
+  if(areaErrosSistema.style.display==="block"){ iniciarEscutaErros(); renderizarErrosSistema(); areaErrosSistema.scrollIntoView({behavior:"smooth"}); }
+};
+
+window.addEventListener("error",evento=>{
+  if(String(evento.filename||"").startsWith("chrome-extension://")) return;
+  registrarErroSistema(evento.error||evento.message,"erro_javascript");
+});
+window.addEventListener("unhandledrejection",evento=>registrarErroSistema(evento.reason,"promessa_rejeitada"));
 
 function extrairHorario(texto){
   const faixa=texto.match(/(\d{1,2})h(?::?(\d{2}))?\s*(?:às|as|a|-)\s*(\d{1,2})h(?::?(\d{2}))?/i);
@@ -770,10 +789,10 @@ window.importarEventosAnalisados=async function(){
   const batch=writeBatch(db), usuario=usuarioAtual(), instante=agoraISO();
   validos.forEach(({linha,erro,duplicado,...evento})=>{
     const referencia=doc(collection(db,"eventos"));
-    batch.set(referencia,{...evento,criadoEm:serverTimestamp(),criadoEmISO:instante,criadoPor:usuario.email,criadoPorUid:usuario.uid,atualizadoEmISO:instante,atualizadoPor:usuario.email,origem:"importação em lote",historico:[{acao:"importado",em:instante,por:usuario.email,uid:usuario.uid}]});
+    batch.set(referencia,{...evento,criadoEm:serverTimestamp(),criadoEmISO:instante,criadoPor:usuario.email,criadoPorUid:usuario.uid,atualizadoEm:serverTimestamp(),atualizadoEmISO:instante,atualizadoPor:usuario.email,atualizadoPorUid:usuario.uid,origem:"importação em lote",historico:[{acao:"importado",em:instante,por:usuario.email,uid:usuario.uid}]});
   });
   try{ await batch.commit(); if($("resumoImportacao")) $("resumoImportacao").innerHTML=`<strong>${validos.length} eventos importados com sucesso.</strong>`; eventosImportacao=[]; $("botaoImportar").disabled=true; }
-  catch{ alert("Não foi possível concluir a importação. Nenhum evento do lote foi gravado."); }
+  catch(erroCapturado){ registrarErroSistema(erroCapturado,"importar_eventos"); alert("Não foi possível concluir a importação. Nenhum evento do lote foi gravado."); }
 };
 
 function renderizarAuditoria(){
@@ -944,6 +963,7 @@ window.exportarPDF=function(){
     setTimeout(()=>URL.revokeObjectURL(url),1000);
   }catch(erro){
     if(botao){ botao.textContent=textoOriginal; botao.disabled=false; }
+    registrarErroSistema(erro,"gerar_pdf");
     console.error("Falha ao gerar PDF",erro); alert("Não foi possível gerar o PDF. Atualize a página e tente novamente.");
   }
 };
