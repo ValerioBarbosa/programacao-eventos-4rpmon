@@ -337,15 +337,13 @@ function contarNoIntervalo(lista,inicio,fim){ return lista.filter(e=>eventoNoInt
 function renderizarIndicadores(filtrados=[]){
   if(!gradeIndicadores || !quebraIndicadores) return;
   const ativos=eventos.filter(e=>!e.excluido&&obterDataInicial(e));
-  const hoje=dataLocalISO(), diaSemana=new Date(`${hoje}T12:00:00`).getDay()||7, inicioSemana=somarDias(hoje,1-diaSemana), fimSemana=somarDias(inicioSemana,6);
-  const mesReferencia=Number(mesSelecionado?.value ?? mes), anoReferencia=Number(anoSelecionado?.value ?? ano);
-  const inicioMes=`${anoReferencia}-${String(mesReferencia+1).padStart(2,"0")}-01`;
-  const fimMes=dataLocalISO(new Date(anoReferencia,mesReferencia+1,0,12));
+  const hoje=dataLocalISO(), diaSemana=new Date(`${hoje}T12:00:00`).getDay()||7, inicioSemana=somarDias(hoje,1-diaSemana), fimSemana=somarDias(inicioSemana,6), fim30=somarDias(hoje,29);
   const efetivo=contabilizarEfetivo(filtrados);
   const cardsEventos=[
     ["Hoje",contarNoIntervalo(ativos,hoje,hoje),"eventos no dia"],
     ["Esta semana",contarNoIntervalo(ativos,inicioSemana,fimSemana),`${formatarData(inicioSemana)} a ${formatarData(fimSemana)}`],
-    ["No mês",contarNoIntervalo(ativos,inicioMes,fimMes),`${nomesMeses[mesReferencia]} de ${anoReferencia}`]
+    ["Próximos 30 dias",contarNoIntervalo(ativos,hoje,fim30),`até ${formatarData(fim30)}`],
+    ["Resultado atual",filtrados.length,"após período e filtros"]
   ];
   const cardsEfetivo=[
     ["Conjuntos empregados",efetivo.conjuntos,"soma do campo Conjuntos"],
@@ -539,9 +537,10 @@ function renderizar(){
       card.className=`evento-card ${obterClasseTipo(e.tipo)} ${obterClasseEsquadrao(obterEsquadrao(e))} ${data===hoje?"evento-hoje":""}`;
       card.setAttribute("aria-label",`${data===hoje?"Evento de hoje: ":"Evento: "}${e.nome||"Evento"}`);
       card.addEventListener("click",()=>window.abrirDetalhesEvento(e.id));
-      const acoesPublicas=`<div class="acoes-publicas"><button type="button" aria-label="Abrir detalhes de ${escaparHTML(e.nome||"evento")}" onclick="event.stopPropagation(); abrirDetalhesEvento('${e.id}')">Detalhes</button></div>`;
+      const localMapa=obterLocalCompleto(e);
+      const acoesPublicas=`<div class="acoes-publicas"><button type="button" onclick="event.stopPropagation(); abrirDetalhesEvento('${e.id}')">Detalhes</button><button type="button" onclick="event.stopPropagation(); copiarLinkEvento('${e.id}')">Copiar link</button><button type="button" class="botao-secundario" onclick="event.stopPropagation(); adicionarEventoCalendario('${e.id}')">Calendário</button><button type="button" class="botao-whatsapp" onclick="event.stopPropagation(); compartilharEventoWhatsApp('${e.id}')">WhatsApp</button>${localMapa?`<button type="button" class="botao-mapa" onclick="event.stopPropagation(); abrirMapaEvento('${e.id}')">Mapa</button>`:""}</div>`;
       const acoes=modoP3&&areaAdministrativa?`<div class="acoes-card"><button class="botao-editar" onclick="event.stopPropagation(); iniciarEdicao('${e.id}')">Editar</button><button class="botao-secundario" onclick="event.stopPropagation(); duplicarEvento('${e.id}')">Duplicar</button><button class="botao-excluir" type="button" title="Excluir cartão" aria-label="Excluir cartão" onclick="event.stopPropagation(); excluirEvento('${e.id}')">Excluir</button></div>`:"";
-      card.innerHTML=`${data===hoje?'<span class="selo-hoje">Hoje</span>':""}<div class="evento-topo"><span class="evento-data">${escaparHTML(formatarPeriodoHorario(e))}</span><span class="evento-tipo">${escaparHTML(e.tipo||"Outros")}</span></div><span class="evento-esquadrao">${escaparHTML(obterTextoEsquadrao(obterEsquadrao(e)))}</span><div class="evento-identidade"><div class="evento-nome">${escaparHTML(e.nome)}</div><div class="evento-local">${escaparHTML(e.local||"")}</div></div><div class="evento-metadados">${metadado("Município",e.municipio)}${metadado("OSv/NSv",e.ordemServico)}${metadado("Efetivo",textoEfetivo(e))}${metadado("Observações",e.observacoes)}</div>${acoesPublicas}${acoes}`;
+      card.innerHTML=`${data===hoje?'<span class="selo-hoje">Hoje</span>':""}<div class="evento-topo"><span class="evento-data">${escaparHTML(formatarPeriodoHorario(e))}</span><span class="evento-tipo">${escaparHTML(e.tipo||"Outros")}</span></div><span class="evento-esquadrao">${escaparHTML(obterTextoEsquadrao(obterEsquadrao(e)))}</span><div class="evento-nome">${escaparHTML(e.nome)}</div><div class="evento-local">${escaparHTML(e.local||"")}</div><div class="evento-metadados">${metadado("Município",e.municipio)}${metadado("OSv/NSv",e.ordemServico)}${metadado("Efetivo",textoEfetivo(e))}${metadado("Observações",e.observacoes)}</div>${acoesPublicas}${acoes}`;
       grade.appendChild(card);
     });
     grupo.appendChild(grade); listaEventos.appendChild(grupo);
