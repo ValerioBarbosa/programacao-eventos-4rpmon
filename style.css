@@ -1759,6 +1759,837 @@ body {
   }
 }
 
+/* =========================================================
+   REFRESH VISUAL 2026 — CONCEITO PREMIUM APROVADO
+========================================================= */
+
+:root {
+  --verde: #087443;
+  --verde-escuro: #064a2d;
+  --verde-profundo: #082f23;
+  --verde-suave: #eaf6f0;
+  --dourado: #d5a52f;
+  --azul: #10271f;
+  --fundo: #f4f7f5;
+  --cinza: #5f6f68;
+  --cinza-claro: #f8faf9;
+  --borda: #dce5e0;
+  --sombra: 0 10px 32px rgba(8, 47, 35, 0.07);
+  --sombra-elevada: 0 18px 46px rgba(8, 47, 35, 0.12);
+  --raio: 14px;
+}
+
+body {
+  background:
+    linear-gradient(180deg, rgba(8, 116, 67, 0.035), transparent 320px),
+    var(--fundo);
+  color: var(--azul);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: -0.008em;
+}
+
+.pagina-publica header,
+.pagina-admin header {
+  padding: 16px 22px;
+  color: var(--azul);
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid var(--borda);
+  box-shadow: 0 4px 22px rgba(8, 47, 35, 0.045);
+}
+
+.pagina-publica .container,
+.pagina-admin .container {
+  max-width: 1480px;
+}
+
+.pagina-publica .cabecalho,
+.pagina-admin .cabecalho {
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 24px;
+  text-align: left;
+}
+
+.pagina-publica .identidade,
+.pagina-admin .identidade {
+  justify-content: flex-start;
+}
+
+.pagina-publica .brasao,
+.pagina-admin .brasao {
+  width: 70px;
+  height: 80px;
+  filter: drop-shadow(0 8px 12px rgba(8, 47, 35, 0.12));
+}
+
+.pagina-publica h1,
+.pagina-admin h1 {
+  color: #10271f;
+  font-size: clamp(1.35rem, 2.15vw, 2rem);
+  font-weight: 780;
+  letter-spacing: -0.04em;
+}
+
+.pagina-publica .subtitulo,
+.pagina-admin .subtitulo {
+  color: #64736c;
+}
+
+.pagina-publica .area-acesso,
+.pagina-admin .area-acesso {
+  justify-content: flex-end;
+  width: auto;
+}
+
+.pagina-publica .botao-acesso,
+.pagina-admin .botao-acesso {
+  min-width: 122px;
+  min-height: 44px;
+  padding: 10px 16px;
+  color: var(--verde);
+  background: #fff;
+  border: 1px solid rgba(8, 116, 67, 0.55);
+  border-radius: 9px;
+  font-size: 0.82rem;
+  box-shadow: none;
+}
+
+.pagina-publica .botao-acesso:hover,
+.pagina-admin .botao-acesso:hover,
+.pagina-publica .botao-instalar,
+.pagina-admin .botao-instalar {
+  color: #fff;
+  background: var(--verde);
+  border-color: var(--verde);
+}
+
+.pagina-publica .botao-instalar:hover,
+.pagina-admin .botao-instalar:hover {
+  background: var(--verde-escuro);
+}
+
+.pagina-publica .mes-cabecalho,
+.pagina-admin .mes-cabecalho {
+  min-width: 132px;
+  padding: 7px 10px;
+  text-align: left;
+  background: #fff;
+  border: 1px solid var(--borda);
+  border-radius: 9px;
+}
+
+.pagina-publica .mes-cabecalho label,
+.pagina-admin .mes-cabecalho label {
+  margin-bottom: 2px;
+  color: #708078;
+  font-size: 0.66rem;
+  letter-spacing: 0.02em;
+}
+
+.pagina-publica .mes-cabecalho select,
+.pagina-admin .mes-cabecalho select {
+  min-height: 28px;
+  padding: 2px 22px 2px 0;
+  color: #173a2e;
+  background-color: #fff;
+  font-size: 0.82rem;
+  text-transform: none;
+}
+
+.pagina-publica main,
+.pagina-admin main {
+  padding: 18px 22px 56px;
+}
+
+.pagina-publica .aviso-visualizacao {
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  color: #486158;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  font-size: 0.76rem;
+}
+
+.pagina-publica .atalhos-periodo,
+.pagina-admin .atalhos-periodo {
+  width: fit-content;
+  max-width: 100%;
+  margin-bottom: 14px;
+  padding: 0;
+  gap: 0;
+  background: #fff;
+  border: 1px solid var(--borda);
+  border-radius: 9px;
+  box-shadow: none;
+}
+
+.pagina-publica .atalhos-titulo,
+.pagina-admin .atalhos-titulo {
+  display: none;
+}
+
+.pagina-publica .botao-atalho,
+.pagina-admin .botao-atalho {
+  min-height: 44px;
+  padding: 9px 22px;
+  color: #3c5149;
+  background: #fff;
+  border: 0;
+  border-right: 1px solid var(--borda);
+  border-radius: 0;
+  font-size: 0.82rem;
+}
+
+.pagina-publica .botao-atalho:first-of-type,
+.pagina-admin .botao-atalho:first-of-type {
+  border-radius: 8px 0 0 8px;
+}
+
+.pagina-publica .botao-atalho:last-child,
+.pagina-admin .botao-atalho:last-child {
+  border-right: 0;
+  border-radius: 0 8px 8px 0;
+}
+
+.pagina-publica .botao-atalho:hover,
+.pagina-publica .botao-atalho.ativo,
+.pagina-admin .botao-atalho:hover,
+.pagina-admin .botao-atalho.ativo {
+  color: var(--verde-escuro);
+  background: var(--verde-suave);
+  box-shadow: inset 0 -3px 0 var(--verde);
+  transform: none;
+}
+
+.pagina-publica .painel,
+.pagina-admin .painel {
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--borda);
+  border-radius: 13px;
+  box-shadow: var(--sombra);
+}
+
+.pagina-publica .campo label,
+.pagina-admin .campo label {
+  margin-bottom: 5px;
+  color: #3f544c;
+  font-size: 0.72rem;
+  font-weight: 720;
+}
+
+.pagina-publica input,
+.pagina-publica select,
+.pagina-publica textarea,
+.pagina-admin input,
+.pagina-admin select,
+.pagina-admin textarea {
+  min-height: 44px;
+  color: #193a2f;
+  background-color: #fff;
+  border-color: #d5dfda;
+  border-radius: 9px;
+  font-size: 0.82rem;
+}
+
+.pagina-publica button,
+.pagina-admin button {
+  border-radius: 9px;
+  font-size: 0.8rem;
+  box-shadow: 0 5px 14px rgba(8, 116, 67, 0.1);
+}
+
+.pagina-publica .botao-limpar,
+.pagina-admin .botao-limpar {
+  color: #42564f;
+  background: #fff;
+  border: 1px solid #d4ded9;
+  box-shadow: none;
+}
+
+.pagina-publica .painel-indicadores,
+.pagina-admin .painel-indicadores,
+.pagina-publica .painel-hoje,
+.pagina-admin .painel-hoje {
+  margin-bottom: 18px;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid var(--borda);
+  border-radius: 13px;
+  box-shadow: var(--sombra);
+  animation: revelar-painel 0.48s ease both;
+}
+
+.pagina-publica .painel-hoje,
+.pagina-admin .painel-hoje {
+  animation-delay: 0.08s;
+}
+
+@keyframes revelar-painel {
+  from { opacity: 0; transform: translateY(9px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.pagina-publica .cabecalho-indicadores,
+.pagina-admin .cabecalho-indicadores,
+.pagina-publica .painel-hoje .cabecalho-secao,
+.pagina-admin .painel-hoje .cabecalho-secao {
+  position: relative;
+  align-items: center;
+  margin-bottom: 14px;
+  padding-left: 16px;
+}
+
+.pagina-publica .cabecalho-indicadores::before,
+.pagina-admin .cabecalho-indicadores::before,
+.pagina-publica .painel-hoje .cabecalho-secao::before,
+.pagina-admin .painel-hoje .cabecalho-secao::before {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 0;
+  width: 3px;
+  content: "";
+  background: var(--dourado);
+  border-radius: 99px;
+}
+
+.pagina-publica .cabecalho-indicadores > div,
+.pagina-admin .cabecalho-indicadores > div,
+.pagina-publica .painel-hoje .cabecalho-secao > div,
+.pagina-admin .painel-hoje .cabecalho-secao > div {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.pagina-publica .rotulo-secao,
+.pagina-admin .rotulo-secao {
+  color: #10271f;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  text-transform: none;
+}
+
+.pagina-publica .cabecalho-indicadores h2,
+.pagina-admin .cabecalho-indicadores h2,
+.pagina-publica .painel-hoje h2,
+.pagina-admin .painel-hoje h2 {
+  margin: 0;
+  color: #66766f;
+  font-size: 0.82rem;
+  font-weight: 540;
+}
+
+.pagina-publica .painel-hoje .cabecalho-secao p,
+.pagina-admin .painel-hoje .cabecalho-secao p {
+  flex-basis: 100%;
+  color: #66766f;
+  font-size: 0.76rem;
+}
+
+.pagina-publica .blocos-indicadores,
+.pagina-admin .blocos-indicadores {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+}
+
+.pagina-publica .grupo-indicadores-operacionais,
+.pagina-admin .grupo-indicadores-operacionais {
+  padding: 18px;
+  background: #fff;
+}
+
+.pagina-publica .grupo-indicadores-operacionais + .grupo-indicadores-operacionais,
+.pagina-admin .grupo-indicadores-operacionais + .grupo-indicadores-operacionais {
+  border-left: 1px solid var(--borda);
+}
+
+.pagina-publica .titulo-grupo-indicadores,
+.pagina-admin .titulo-grupo-indicadores {
+  margin-bottom: 10px;
+  color: #173a2e;
+  font-size: 0.94rem;
+}
+
+.pagina-publica .titulo-grupo-indicadores::before,
+.pagina-admin .titulo-grupo-indicadores::before {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  content: "▦";
+  color: var(--verde);
+  background: var(--verde-suave);
+  border-radius: 10px;
+  font-size: 1.18rem;
+}
+
+.pagina-publica .grupo-indicadores-operacionais:nth-child(2) .titulo-grupo-indicadores::before,
+.pagina-admin .grupo-indicadores-operacionais:nth-child(2) .titulo-grupo-indicadores::before {
+  content: "●●●";
+  font-size: 0.5rem;
+  letter-spacing: -0.1em;
+}
+
+.pagina-publica .titulo-grupo-indicadores::after,
+.pagina-admin .titulo-grupo-indicadores::after {
+  display: none;
+}
+
+.pagina-publica .grade-indicadores,
+.pagina-publica .grade-indicadores.efetivo,
+.pagina-admin .grade-indicadores,
+.pagina-admin .grade-indicadores.efetivo {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+}
+
+.pagina-publica .indicador-operacional,
+.pagina-admin .indicador-operacional {
+  justify-items: center;
+  min-height: 92px;
+  padding: 10px 14px;
+  text-align: center;
+  background: transparent;
+  border: 0;
+  border-right: 1px solid var(--borda);
+  border-radius: 0;
+}
+
+.pagina-publica .indicador-operacional:last-child,
+.pagina-admin .indicador-operacional:last-child {
+  border-right: 0;
+}
+
+.pagina-publica .indicador-operacional span,
+.pagina-admin .indicador-operacional span {
+  color: #53665e;
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.pagina-publica .indicador-operacional strong,
+.pagina-admin .indicador-operacional strong {
+  color: var(--verde);
+  font-size: clamp(1.65rem, 2.5vw, 2.2rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.05em;
+}
+
+.pagina-publica .indicador-operacional small,
+.pagina-admin .indicador-operacional small {
+  color: #839089;
+  font-size: 0.66rem;
+}
+
+.pagina-publica .grade-relatorio,
+.pagina-admin .grade-relatorio {
+  margin-top: 12px;
+}
+
+.pagina-publica .grupo-relatorio,
+.pagina-admin .grupo-relatorio {
+  background: #fbfcfb;
+  border-color: var(--borda);
+}
+
+.pagina-publica .painel-hoje,
+.pagina-admin .painel-hoje {
+  border-top: 1px solid var(--borda);
+}
+
+.pagina-publica .lista-operacao-hoje,
+.pagina-admin .lista-operacao-hoje {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--borda);
+  border-radius: 11px;
+}
+
+.pagina-publica .item-operacao-hoje,
+.pagina-admin .item-operacao-hoje {
+  grid-template-columns: 118px minmax(0, 1fr) auto;
+  gap: 18px;
+  padding: 13px 14px;
+  background: #fff;
+  border: 0;
+  border-bottom: 1px solid var(--borda);
+  border-radius: 0;
+}
+
+.pagina-publica .item-operacao-hoje:last-child,
+.pagina-admin .item-operacao-hoje:last-child {
+  border-bottom: 0;
+}
+
+.pagina-publica .item-operacao-hoje time,
+.pagina-admin .item-operacao-hoje time {
+  display: inline-flex;
+  justify-content: center;
+  padding: 8px 10px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--verde-escuro), var(--verde));
+  border-radius: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pagina-publica .resumo,
+.pagina-admin .resumo {
+  margin: 2px 0 10px;
+}
+
+.pagina-publica .indicador,
+.pagina-admin .indicador {
+  color: #63726c;
+  background: transparent;
+  border: 0;
+}
+
+.pagina-publica .titulo-mes,
+.pagina-admin .titulo-mes {
+  margin: 4px 0 12px;
+  color: #10271f;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
+.pagina-publica .grade-dia,
+.pagina-admin .grade-dia {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.pagina-publica .cabecalho-dia,
+.pagina-admin .cabecalho-dia {
+  margin-bottom: 8px;
+  padding: 9px 13px;
+  color: #24453a;
+  background: #edf5f1;
+  border-color: #d7e6df;
+  border-radius: 9px;
+}
+
+.pagina-publica .grupo-hoje .cabecalho-dia,
+.pagina-admin .grupo-hoje .cabecalho-dia {
+  background: linear-gradient(120deg, var(--verde-profundo), var(--verde));
+  border-color: transparent;
+}
+
+.pagina-publica .evento-card,
+.pagina-admin .evento-card {
+  display: grid;
+  grid-template-columns: minmax(165px, 0.8fr) minmax(130px, 0.65fr) minmax(210px, 1fr) minmax(360px, 1.9fr) auto;
+  grid-template-areas: "topo esquadrao identidade metadados acoes";
+  align-items: center;
+  gap: 16px;
+  min-height: 82px;
+  padding: 13px 14px;
+  background: #fff;
+  border: 1px solid var(--borda);
+  border-left: 4px solid var(--vermelho);
+  border-top-width: 1px;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(8, 47, 35, 0.045);
+}
+
+.pagina-publica .evento-card.esquadrao-1,
+.pagina-publica .evento-card.esquadrao-2,
+.pagina-admin .evento-card.esquadrao-1,
+.pagina-admin .evento-card.esquadrao-2 {
+  border-top-width: 1px;
+}
+
+.pagina-publica .evento-card.tipo-01,
+.pagina-admin .evento-card.tipo-01 { border-left-color: #c82032; }
+.pagina-publica .evento-card.tipo-02,
+.pagina-admin .evento-card.tipo-02 { border-left-color: #172033; }
+.pagina-publica .evento-card.tipo-03,
+.pagina-admin .evento-card.tipo-03 { border-left-color: #f97316; }
+.pagina-publica .evento-card.tipo-04,
+.pagina-admin .evento-card.tipo-04 { border-left-color: #087443; }
+.pagina-publica .evento-card.tipo-05,
+.pagina-admin .evento-card.tipo-05 { border-left-color: #a855f7; }
+.pagina-publica .evento-card.tipo-06,
+.pagina-admin .evento-card.tipo-06 { border-left-color: #eab308; }
+.pagina-publica .evento-card.tipo-07,
+.pagina-admin .evento-card.tipo-07 { border-left-color: #7c3aed; }
+.pagina-publica .evento-card.tipo-08,
+.pagina-admin .evento-card.tipo-08 { border-left-color: #0ea5e9; }
+.pagina-publica .evento-card.tipo-09,
+.pagina-admin .evento-card.tipo-09 { border-left-color: #14b8a6; }
+.pagina-publica .evento-card.tipo-10,
+.pagina-admin .evento-card.tipo-10 { border-left-color: #2563eb; }
+.pagina-publica .evento-card.tipo-11,
+.pagina-admin .evento-card.tipo-11 { border-left-color: #db2777; }
+.pagina-publica .evento-card.tipo-12,
+.pagina-admin .evento-card.tipo-12 { border-left-color: #64748b; }
+.pagina-publica .evento-card.tipo-13,
+.pagina-admin .evento-card.tipo-13 { border-left-color: #b45309; }
+.pagina-publica .evento-card.tipo-14,
+.pagina-admin .evento-card.tipo-14 { border-left-color: #0f766e; }
+.pagina-publica .evento-card.tipo-15,
+.pagina-admin .evento-card.tipo-15 { border-left-color: #4338ca; }
+.pagina-publica .evento-card.tipo-outros,
+.pagina-admin .evento-card.tipo-outros { border-left-color: #94a3b8; }
+
+.pagina-publica .evento-card:hover,
+.pagina-admin .evento-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-elevada);
+}
+
+.pagina-publica .evento-topo,
+.pagina-admin .evento-topo {
+  grid-area: topo;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.pagina-publica .evento-esquadrao,
+.pagina-admin .evento-esquadrao {
+  grid-area: esquadrao;
+  margin: 0;
+  justify-self: start;
+}
+
+.pagina-publica .evento-identidade,
+.pagina-admin .evento-identidade {
+  grid-area: identidade;
+}
+
+.pagina-publica .evento-nome,
+.pagina-admin .evento-nome {
+  margin: 0 0 3px;
+  color: #17372c;
+}
+
+.pagina-publica .evento-metadados,
+.pagina-admin .evento-metadados {
+  grid-area: metadados;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3px 14px;
+  margin: 0;
+}
+
+.pagina-publica .acoes-publicas,
+.pagina-admin .acoes-publicas {
+  grid-area: acoes;
+  margin: 0;
+}
+
+.pagina-publica .acoes-publicas button,
+.pagina-admin .acoes-publicas button {
+  width: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0;
+  overflow: hidden;
+  color: transparent;
+  background: #eef6f2;
+  border: 1px solid #cfe0d8;
+  box-shadow: none;
+}
+
+.pagina-publica .acoes-publicas button::after,
+.pagina-admin .acoes-publicas button::after {
+  content: "›";
+  color: var(--verde);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.pagina-publica .acoes-card,
+.pagina-admin .acoes-card {
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.pagina-publica .selo-hoje,
+.pagina-admin .selo-hoje {
+  position: absolute;
+  top: -7px;
+  right: 12px;
+  z-index: 1;
+}
+
+@media (min-width: 1251px) {
+  .pagina-publica .painel,
+  .pagina-admin .painel {
+    grid-template-columns: minmax(240px, 1.6fr) repeat(4, minmax(125px, 1fr)) repeat(3, minmax(105px, 0.72fr));
+  }
+
+  .pagina-publica .painel > .campo:first-child,
+  .pagina-admin .painel > .campo:first-child,
+  .pagina-publica .painel > button,
+  .pagina-admin .painel > button {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 1250px) {
+  .pagina-publica .cabecalho,
+  .pagina-admin .cabecalho {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .pagina-publica .area-acesso,
+  .pagina-admin .area-acesso {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .pagina-publica .evento-card,
+  .pagina-admin .evento-card {
+    grid-template-columns: minmax(160px, 0.8fr) minmax(130px, 0.7fr) minmax(220px, 1fr) auto;
+    grid-template-areas:
+      "topo esquadrao identidade acoes"
+      "metadados metadados metadados metadados";
+  }
+}
+
+@media (max-width: 900px) {
+  .pagina-publica .blocos-indicadores,
+  .pagina-admin .blocos-indicadores {
+    grid-template-columns: 1fr;
+  }
+
+  .pagina-publica .grupo-indicadores-operacionais + .grupo-indicadores-operacionais,
+  .pagina-admin .grupo-indicadores-operacionais + .grupo-indicadores-operacionais {
+    border-top: 1px solid var(--borda);
+    border-left: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .pagina-publica header,
+  .pagina-admin header {
+    padding: 13px 12px;
+  }
+
+  .pagina-publica .cabecalho,
+  .pagina-admin .cabecalho {
+    gap: 12px;
+  }
+
+  .pagina-publica .area-acesso,
+  .pagina-admin .area-acesso {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pagina-publica .botao-acesso,
+  .pagina-admin .botao-acesso,
+  .pagina-publica .mes-cabecalho,
+  .pagina-admin .mes-cabecalho {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .pagina-publica main,
+  .pagina-admin main {
+    padding: 12px 10px 40px;
+  }
+
+  .pagina-publica .atalhos-periodo,
+  .pagina-admin .atalhos-periodo {
+    width: 100%;
+    border-radius: 10px;
+  }
+
+  .pagina-publica .botao-atalho,
+  .pagina-admin .botao-atalho {
+    flex: 1 0 auto;
+    padding: 8px 14px;
+  }
+
+  .pagina-publica .painel,
+  .pagina-admin .painel {
+    padding: 13px;
+  }
+
+  .pagina-publica .cabecalho-indicadores > div,
+  .pagina-admin .cabecalho-indicadores > div,
+  .pagina-publica .painel-hoje .cabecalho-secao > div,
+  .pagina-admin .painel-hoje .cabecalho-secao > div {
+    display: grid;
+    gap: 2px;
+  }
+
+  .pagina-publica .grade-indicadores,
+  .pagina-publica .grade-indicadores.efetivo,
+  .pagina-admin .grade-indicadores,
+  .pagina-admin .grade-indicadores.efetivo {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .pagina-publica .indicador-operacional,
+  .pagina-admin .indicador-operacional {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 1fr;
+    min-height: 112px;
+    padding: 9px 7px;
+  }
+
+  .pagina-publica .indicador-operacional strong,
+  .pagina-admin .indicador-operacional strong {
+    grid-row: auto;
+    grid-column: auto;
+  }
+
+  .pagina-publica .item-operacao-hoje,
+  .pagina-admin .item-operacao-hoje {
+    grid-template-columns: 1fr;
+  }
+
+  .pagina-publica .item-operacao-hoje time,
+  .pagina-admin .item-operacao-hoje time {
+    justify-self: start;
+  }
+
+  .pagina-publica .evento-card,
+  .pagina-admin .evento-card {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "topo acoes"
+      "esquadrao acoes"
+      "identidade identidade"
+      "metadados metadados";
+    gap: 9px 12px;
+    padding: 14px;
+  }
+
+  .pagina-publica .evento-metadados,
+  .pagina-admin .evento-metadados {
+    grid-template-columns: 1fr;
+    padding-top: 8px;
+    border-top: 1px solid var(--borda);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pagina-publica .painel-indicadores,
+  .pagina-admin .painel-indicadores,
+  .pagina-publica .painel-hoje,
+  .pagina-admin .painel-hoje {
+    animation: none;
+  }
+}
+
 /* =========================
    IMPRESSÃO
 ========================= */
