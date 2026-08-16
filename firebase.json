@@ -8,6 +8,11 @@
       "firebase.json",
       "firestore.rules",
       "README.md",
+      "package.json",
+      "tests/**",
+      "scripts/**",
+      "backups/**",
+      ".github/**",
       ".git/**"
     ],
     "headers": [

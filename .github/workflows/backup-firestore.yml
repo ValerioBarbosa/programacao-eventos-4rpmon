@@ -1,0 +1,27 @@
+name: Backup semanal do Firestore
+
+on:
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Gerar backup e checksum
+        run: node scripts/backup-firestore.mjs
+      - name: Guardar backup por 90 dias
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-agenda-4rpmon-${{ github.run_id }}
+          path: backups/
+          retention-days: 90
+          if-no-files-found: error

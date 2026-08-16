@@ -32,7 +32,10 @@ O sistema organiza a agenda operacional em uma interface única. Usuários podem
 - Elementos de acessibilidade e suporte a movimento reduzido
 - Proteção contra indexação por mecanismos de busca
 - Backup automático local para usuários P3 e exportação manual em JSON
+- Backup semanal independente do Firestore, com checksum SHA-256 e retenção de 90 dias no GitHub Actions
 - Duplicação, arquivamento, alertas de conflito e filtros de auditoria
+- Monitor de erros restrito aos usuários P3
+- Testes automáticos das regras de cálculo, municípios e integridade dos arquivos
 
 ## Tecnologias
 
@@ -53,10 +56,12 @@ O código inclui compatibilidade com registros antigos, tratamento de conteúdo 
 - `index.html`: visualização pública da agenda
 - `admin.html`: interface administrativa
 - `app.js`: regras da aplicação e integração com o Firebase
+- `core.js`: funções puras de cálculo e normalização cobertas por testes
 - `firebase-config.js`: configuração dos serviços Firebase
 - `style.css`: estilos e comportamento responsivo
 - `manifest.webmanifest` e `sw.js`: instalação e cache do aplicativo
 - `firestore.rules`: regras recomendadas de leitura pública e escrita autenticada
+- `.github/workflows`: validação contínua, backup semanal e publicação das regras
 - `robots.txt`: instrução para não indexar o site
 
 ## Como executar
@@ -78,6 +83,8 @@ firebase use agenda-4rpmon
 firebase deploy --only firestore:rules
 ```
 
+Para publicação automática, crie no repositório o secret `FIREBASE_SERVICE_ACCOUNT_AGENDA_4RPMON` com o JSON de uma conta de serviço que tenha permissão para atualizar regras do Firestore. Sem esse secret, o fluxo apenas registra um aviso e não altera o projeto Firebase.
+
 O arquivo `firebase.json` também permite usar o Firebase Hosting, mas a publicação atual continua compatível com GitHub Pages e mantém o endereço existente.
 
 > `robots.txt` e a metatag `noindex` reduzem a descoberta por buscadores, mas não transformam o endereço público em área sigilosa.
@@ -88,7 +95,19 @@ O service worker guarda somente os arquivos da interface. Os eventos continuam v
 
 ## Backup
 
-Quando um usuário P3 está autenticado, a última versão recebida do Firestore é armazenada automaticamente no navegador. O botão **Baixar backup JSON** gera uma cópia portátil dos registros ativos e arquivados. Para uma política institucional de recuperação de desastre, configure também exportações agendadas no Google Cloud.
+Quando um usuário P3 está autenticado, a última versão recebida do Firestore é armazenada automaticamente no navegador. O botão **Baixar backup JSON** gera uma cópia portátil dos registros ativos e arquivados.
+
+O fluxo **Backup semanal do Firestore** também executa toda segunda-feira, gera um JSON completo, calcula seu SHA-256 e guarda ambos como artefato por 90 dias. Ele pode ser acionado manualmente na aba **Actions** do GitHub.
+
+## Testes e monitoramento
+
+Execute localmente:
+
+```bash
+npm run verify
+```
+
+O mesmo comando roda automaticamente em cada pull request e envio para a branch `main`. O painel P3 inclui **Erros do sistema**, que registra e exibe falhas de execução ocorridas durante o uso autenticado, sem permitir escrita ou leitura pública desses registros.
 
 > Nunca publique senhas, chaves privadas ou credenciais administrativas no repositório. A configuração pública de cliente do Firebase deve ser protegida por regras adequadas de autenticação e acesso no Firestore.
 

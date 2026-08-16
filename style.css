@@ -63,12 +63,17 @@ body[data-visualizacao="ano"] .campo-data-referencia { display: none; }
 .item-auditoria ol { margin: 0; padding: 0 18px 14px 42px; color: #52657a; }
 .item-auditoria li { padding: 5px 0; }
 .item-auditoria time { display: block; color: #8492a3; font-size: .76rem; }
+.item-erro-sistema summary { align-items: flex-start; }
+.item-erro-sistema summary span { max-width: 72ch; overflow-wrap: anywhere; }
+.item-erro-sistema summary time { flex: 0 0 auto; white-space: nowrap; }
+.item-erro-sistema > p { margin: 0; padding: 0 15px 14px; color: #52657a; font-size: .82rem; overflow-wrap: anywhere; }
 
 @media (max-width: 720px) {
   .cabecalho-secao { flex-direction: column; }
   .grade-dia { grid-template-columns: 1fr; }
   .evento-topo { align-items: flex-start; flex-direction: column; }
   .barra-administrativa > button { width: 100%; }
+  .item-erro-sistema summary { flex-direction: column; }
 }
 
 /* =========================
