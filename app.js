@@ -54,6 +54,8 @@ const filtroEsquadrao = $("filtroEsquadrao");
 const filtroMunicipio = $("filtroMunicipio");
 const modoVisualizacao = $("modoVisualizacao");
 const dataReferencia = $("dataReferencia");
+const pdfDataInicial = $("pdfDataInicial");
+const pdfDataFinal = $("pdfDataFinal");
 const tituloMes = $("tituloMes");
 const nomeMesResumo = $("nomeMesResumo");
 const totalEventos = $("totalEventos");
@@ -317,6 +319,11 @@ function intervaloVisualizacao(){
   const mes=Number(mesSelecionado?.value || 0);
   const referencia=dataReferencia?.value || `${ano}-${String(mes+1).padStart(2,"0")}-01`;
   if(modo === "ano") return {inicio:`${ano}-01-01`,fim:`${ano}-12-31`,titulo:`Agenda anual de ${ano}`};
+  if(modo === "personalizado"){
+    const inicio=pdfDataInicial?.value || referencia;
+    const fim=pdfDataFinal?.value || inicio;
+    return {inicio,fim,titulo:`Período de ${formatarData(inicio)} a ${formatarData(fim)}`};
+  }
   if(modo === "proximos"){
     const hoje=dataLocalISO(), fim=somarDias(hoje,29);
     return {inicio:hoje,fim,titulo:`Próximos 30 dias · ${formatarData(hoje)} a ${formatarData(fim)}`};
@@ -953,8 +960,10 @@ function criarPDFAgenda(titulo){
 }
 
 window.exportarPDF=function(){
-  const botao=document.querySelector('button[onclick="exportarPDF()"]'), textoOriginal=botao?.textContent;
+  const botao=$("botaoExportarPDF"), textoOriginal=botao?.textContent;
   try{
+    if(modoVisualizacao?.value==="personalizado" && (!pdfDataInicial?.value || !pdfDataFinal?.value)){ alert("Informe a data inicial e a data final do período."); return; }
+    if(modoVisualizacao?.value==="personalizado" && pdfDataInicial.value>pdfDataFinal.value){ alert("A data inicial não pode ser posterior à data final."); pdfDataInicial.focus(); return; }
     if(botao){ botao.textContent="Gerando PDF..."; botao.disabled=true; }
     const {titulo}=intervaloVisualizacao(), url=URL.createObjectURL(criarPDFAgenda(titulo)), link=document.createElement("a");
     const periodo=textoPDF(titulo).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,42);
@@ -999,6 +1008,8 @@ modoVisualizacao?.addEventListener("change",()=>{
   mostrarPassados=false; renderizar();
 });
 dataReferencia?.addEventListener("change",renderizar);
+pdfDataInicial?.addEventListener("change",renderizar);
+pdfDataFinal?.addEventListener("change",renderizar);
 filtroTipo?.addEventListener("change",renderizar); filtroEsquadrao?.addEventListener("change",renderizar); filtroMunicipio?.addEventListener("change",renderizar);
 pesquisa?.addEventListener("input",()=>{ clearTimeout(debounceId); debounceId=setTimeout(renderizar,180); });
 $("filtroAuditoriaTexto")?.addEventListener("input",()=>{ clearTimeout(debounceId); debounceId=setTimeout(renderizarAuditoria,180); });
@@ -1008,4 +1019,9 @@ if(mesSelecionado) mesSelecionado.value=String(hojeLocal.getMonth());
 selecionarAno(anoAtual);
 if(dataReferencia) dataReferencia.value=dataLocalISO();
 if(modoVisualizacao) document.body.dataset.visualizacao=modoVisualizacao.value;
+if(pdfDataInicial && pdfDataFinal){
+  const {inicio,fim}=intervaloVisualizacao();
+  pdfDataInicial.value=inicio;
+  pdfDataFinal.value=fim;
+}
 iniciarEscutaEventos();
