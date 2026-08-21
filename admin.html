@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="style.css?v=20260816-1">
+<link rel="stylesheet" href="style.css?v=20260821-1">
 </head>
 <body>
 <header>
@@ -111,13 +111,22 @@ Modo P3 ativo
 <option value="mes" selected>Mês</option>
 <option value="proximos">Próximos 30 dias</option>
 <option value="ano">Ano</option>
+<option value="personalizado">Período personalizado</option>
 </select>
 </div>
 <div class="campo campo-data-referencia">
 <label for="dataReferencia">Data de referência</label>
 <input id="dataReferencia" type="date">
 </div>
-<button type="button" onclick="exportarPDF()">Baixar PDF</button>
+<div class="campo campo-periodo-personalizado">
+<label for="pdfDataInicial">Data inicial</label>
+<input id="pdfDataInicial" type="date">
+</div>
+<div class="campo campo-periodo-personalizado">
+<label for="pdfDataFinal">Data final</label>
+<input id="pdfDataFinal" type="date">
+</div>
+<button id="botaoExportarPDF" type="button" onclick="exportarPDF()">Baixar PDF</button>
 <button class="botao-whatsapp" onclick="compartilharWhatsApp()">WhatsApp</button>
 <button class="botao-limpar" type="button" onclick="limparFiltros()">Limpar filtros</button>
 </section>
@@ -302,7 +311,6 @@ Modo P3 ativo
 </div>
 </div>
 
-<script type="module" src="app.js?v=20260816-1"></script>
+<script type="module" src="app.js?v=20260821-1"></script>
 </body>
 </html>
-
