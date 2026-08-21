@@ -19,7 +19,8 @@
 .campo-data-referencia { min-width: 170px; }
 body[data-visualizacao="mes"] .campo-data-referencia,
 body[data-visualizacao="proximos"] .campo-data-referencia,
-body[data-visualizacao="ano"] .campo-data-referencia { display: none; }
+body[data-visualizacao="ano"] .campo-data-referencia,
+body[data-visualizacao="personalizado"] .campo-data-referencia { display: none; }
 
 .grupo-dia { margin: 0 0 24px; }
 .cabecalho-dia {
@@ -359,6 +360,9 @@ main {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.campo-periodo-personalizado { display: none; }
+body[data-visualizacao="personalizado"] .campo-periodo-personalizado { display: flex; }
 
 input,
 select,
