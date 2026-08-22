@@ -5,8 +5,9 @@ import {
 } from "./firebase-config.js";
 import {
   normalizar, nomeMunicipio, chaveMunicipio, numeroInteiro,
-  extrairEfetivoTexto, obterEfetivoEstruturado, contabilizarEfetivo
-} from "./core.js?v=20260816-1";
+  extrairEfetivoTexto, obterEfetivoEstruturado, contabilizarEfetivo,
+  ajustarDataFinalCalendario
+} from "./core.js?v=20260821-1";
 
 const hojeLocal = new Date();
 const anoAtual = hojeLocal.getFullYear();
@@ -171,7 +172,8 @@ function escaparICS(valor){ return String(valor||"").replace(/\\/g,"\\\\").repla
 function dataICS(data){ return String(data||"").replaceAll("-",""); }
 function dataHoraICS(data,hora){ return `${dataICS(data)}T${String(hora||"00:00").replace(":","")}00`; }
 function criarICS(e){
-  const inicio=obterDataInicial(e), fim=obterDataFinal(e)||inicio, horaInicio=obterHoraInicial(e), horaFim=obterHoraFinal(e);
+  const inicio=obterDataInicial(e), horaInicio=obterHoraInicial(e), horaFim=obterHoraFinal(e);
+  const fim=ajustarDataFinalCalendario({dataInicio:inicio,dataFim:obterDataFinal(e),horaInicio,horaFim});
   const datas=horaInicio
     ? [`DTSTART:${dataHoraICS(inicio,horaInicio)}`,...(horaFim?[`DTEND:${dataHoraICS(fim,horaFim)}`]:[])]
     : [`DTSTART;VALUE=DATE:${dataICS(inicio)}`,`DTEND;VALUE=DATE:${dataICS(somarDias(fim,1))}`];
@@ -305,11 +307,19 @@ window.irParaSemana=function(){ aplicarAtalho("semana"); };
 window.irParaProximos=function(){ aplicarAtalho("proximos"); };
 window.alternarEventosPassados=function(){ mostrarPassados=!mostrarPassados; renderizar(); };
 window.limparFiltros=function(){
+  const hoje=dataLocalISO(), mesAtual=Number(hoje.slice(5,7))-1;
   if(pesquisa) pesquisa.value="";
   if(filtroTipo) filtroTipo.value="todos";
   if(filtroEsquadrao) filtroEsquadrao.value="todos";
   if(filtroMunicipio) filtroMunicipio.value="todos";
-  if(statusAgenda) statusAgenda.textContent="Filtros removidos.";
+  selecionarAno(Number(hoje.slice(0,4)),{preservarData:true});
+  if(mesSelecionado) mesSelecionado.value=String(mesAtual);
+  if(modoVisualizacao) modoVisualizacao.value="mes";
+  if(dataReferencia) dataReferencia.value=hoje;
+  if(pdfDataInicial) pdfDataInicial.value=`${hoje.slice(0,7)}-01`;
+  if(pdfDataFinal) pdfDataFinal.value=dataLocalISO(new Date(Number(hoje.slice(0,4)),mesAtual+1,0,12));
+  document.body.dataset.visualizacao="mes";
+  mostrarPassados=false;
   renderizar();
 };
 window.recarregarAgenda=function(){ window.location.reload(); };
@@ -339,17 +349,23 @@ function intervaloVisualizacao(){
   return {inicio,fim,titulo:`${nomesMeses[mes]} de ${ano}`};
 }
 
+function erroPeriodoPersonalizado(){
+  if(modoVisualizacao?.value!=="personalizado") return "";
+  if(!pdfDataInicial?.value || !pdfDataFinal?.value) return "Informe a data inicial e a data final do período.";
+  if(pdfDataInicial.value>pdfDataFinal.value) return "A data inicial não pode ser posterior à data final.";
+  return "";
+}
+
 function contarNoIntervalo(lista,inicio,fim){ return lista.filter(e=>eventoNoIntervalo(e,inicio,fim)).length; }
 
-function renderizarIndicadores(filtrados=[]){
+function renderizarIndicadores(filtrados=[],filtradosPorCriterios=filtrados){
   if(!gradeIndicadores || !quebraIndicadores) return;
-  const ativos=eventos.filter(e=>!e.excluido&&obterDataInicial(e));
   const hoje=dataLocalISO(), diaSemana=new Date(`${hoje}T12:00:00`).getDay()||7, inicioSemana=somarDias(hoje,1-diaSemana), fimSemana=somarDias(inicioSemana,6), fim30=somarDias(hoje,29);
   const efetivo=contabilizarEfetivo(filtrados);
   const cardsEventos=[
-    ["Hoje",contarNoIntervalo(ativos,hoje,hoje),"eventos no dia"],
-    ["Esta semana",contarNoIntervalo(ativos,inicioSemana,fimSemana),`${formatarData(inicioSemana)} a ${formatarData(fimSemana)}`],
-    ["Próximos 30 dias",contarNoIntervalo(ativos,hoje,fim30),`até ${formatarData(fim30)}`],
+    ["Hoje",contarNoIntervalo(filtradosPorCriterios,hoje,hoje),"conforme os filtros"],
+    ["Esta semana",contarNoIntervalo(filtradosPorCriterios,inicioSemana,fimSemana),`${formatarData(inicioSemana)} a ${formatarData(fimSemana)}`],
+    ["Próximos 30 dias",contarNoIntervalo(filtradosPorCriterios,hoje,fim30),`até ${formatarData(fim30)}`],
     ["Resultado atual",filtrados.length,"após período e filtros"]
   ];
   const cardsEfetivo=[
@@ -492,16 +508,31 @@ function metadado(label,valor){ return valor ? `<span class="meta-item"><b>${esc
 function renderizar(){
   if(!listaEventos || !mesSelecionado || !pesquisa || !filtroTipo || !totalEventos) return;
   if(!primeiraCargaConcluida){ renderizarCarregamento(); return; }
+  const erroPeriodo=erroPeriodoPersonalizado(), botaoExportar=$("botaoExportarPDF");
+  if(botaoExportar) botaoExportar.disabled=!!erroPeriodo;
+  if(erroPeriodo){
+    eventosFiltradosAtuais=[]; totalEventos.textContent="0";
+    renderizarIndicadores([],[]); renderizarOperacaoHoje();
+    if(tituloMes) tituloMes.textContent="Período personalizado inválido";
+    if(nomeMesResumo) nomeMesResumo.textContent="Período inválido";
+    if(statusAgenda) statusAgenda.textContent=erroPeriodo;
+    listaEventos.innerHTML=`<div class="estado-agenda estado-erro"><strong>Período inválido</strong><span>${escaparHTML(erroPeriodo)}</span></div>`;
+    if(botaoPassados) botaoPassados.hidden=true;
+    return;
+  }
   const {inicio,fim,titulo}=intervaloVisualizacao();
   const termo=normalizar(pesquisa.value), tipo=filtroTipo.value, esq=filtroEsquadrao?.value || "todos", municipio=filtroMunicipio?.value||"todos";
   const hoje=dataLocalISO(), modo=modoVisualizacao?.value || "mes";
-  const filtrados=eventos.filter(e=>{
-    if(e.excluido || !obterDataInicial(e) || !eventoNoIntervalo(e,inicio,fim)) return false;
+  const filtradosPorCriterios=eventos.filter(e=>{
+    if(e.excluido || !obterDataInicial(e)) return false;
     const haystack=normalizar(`${e.nome} ${e.local} ${e.municipio} ${e.observacoes} ${e.ordemServico} ${textoEfetivo(e)} ${e.tipo}`);
     return (!termo || haystack.includes(termo)) && (tipo==="todos" || e.tipo===tipo) && (esq==="todos" || obterEsquadrao(e)===esq) && (municipio==="todos" || chaveMunicipio(e.municipio)===municipio);
+  });
+  const filtrados=filtradosPorCriterios.filter(e=>{
+    return eventoNoIntervalo(e,inicio,fim);
   }).sort((a,b)=>`${obterDataInicial(a)}${obterHoraInicial(a)}`.localeCompare(`${obterDataInicial(b)}${obterHoraInicial(b)}`));
   eventosFiltradosAtuais=filtrados; totalEventos.textContent=filtrados.length;
-  renderizarIndicadores(filtrados);
+  renderizarIndicadores(filtrados,filtradosPorCriterios);
   renderizarOperacaoHoje();
   if(tituloMes) tituloMes.textContent=titulo;
   if(nomeMesResumo) nomeMesResumo.textContent=modo==="ano"?"Ano completo":titulo;
@@ -661,6 +692,7 @@ function cancelarEdicao(){
   eventoEmEdicaoId=null;
   ["dataInicial","horaInicial","horaFinal","nomeEvento","localEvento","municipioEvento","ordemServicoEvento","conjuntosEvento","mesEvento","equinosEvento","efetivoEvento","observacoesEvento","modeloEvento"].forEach(id=>{ if($(id)) $(id).value=""; });
   if($("esquadraoEvento")) $("esquadraoEvento").value="1";
+  if($("tipoEvento")) $("tipoEvento").value="POLOST";
   if(tituloFormulario) tituloFormulario.textContent="Adicionar evento — P3"; if(botaoSalvar) botaoSalvar.textContent="Adicionar";
   if(botaoCancelarEdicao) botaoCancelarEdicao.hidden=true; if(botaoFecharEdicao) botaoFecharEdicao.hidden=true;
   if(modalEdicaoEvento?.open) modalEdicaoEvento.close();
@@ -819,9 +851,11 @@ function renderizarAuditoria(){
 function textoAgenda(){
   const {titulo}=intervaloVisualizacao(); let texto=`*PROGRAMAÇÃO OPERACIONAL 4º RPMon*\n${titulo}\n\n`;
   if(!eventosFiltradosAtuais.length) return `${texto}_Nenhum evento neste período._`;
-  let dataAnterior="";
-  eventosFiltradosAtuais.forEach(e=>{
-    const data=obterDataInicial(e); if(data!==dataAnterior){ texto+=`*${formatarData(data)} — ${obterTextoEsquadrao(obterEsquadrao(e))}*\n`; dataAnterior=data; }
+  let grupoAnterior="";
+  const ordenados=[...eventosFiltradosAtuais].sort((a,b)=>`${obterDataInicial(a)}${obterEsquadrao(a)}${obterHoraInicial(a)}`.localeCompare(`${obterDataInicial(b)}${obterEsquadrao(b)}${obterHoraInicial(b)}`));
+  ordenados.forEach(e=>{
+    const data=obterDataInicial(e), grupo=`${data}|${obterEsquadrao(e)}`;
+    if(grupo!==grupoAnterior){ texto+=`${grupoAnterior?"\n":""}*${formatarData(data)} — ${obterTextoEsquadrao(obterEsquadrao(e))}*\n`; grupoAnterior=grupo; }
     texto+=`• *${e.nome}* | ${formatarPeriodoHorario(e)}`;
     if(e.local) texto+=` | ${e.local}`; if(e.municipio) texto+=` | ${e.municipio}`; if(textoEfetivo(e)) texto+=` | ${textoEfetivo(e)}`; if(e.ordemServico) texto+=` | *${e.ordemServico}*`; if(e.observacoes) texto+=` | ${e.observacoes}`; texto+="\n";
   }); return texto;
@@ -962,8 +996,8 @@ function criarPDFAgenda(titulo){
 window.exportarPDF=function(){
   const botao=$("botaoExportarPDF"), textoOriginal=botao?.textContent;
   try{
-    if(modoVisualizacao?.value==="personalizado" && (!pdfDataInicial?.value || !pdfDataFinal?.value)){ alert("Informe a data inicial e a data final do período."); return; }
-    if(modoVisualizacao?.value==="personalizado" && pdfDataInicial.value>pdfDataFinal.value){ alert("A data inicial não pode ser posterior à data final."); pdfDataInicial.focus(); return; }
+    const erroPeriodo=erroPeriodoPersonalizado();
+    if(erroPeriodo){ alert(erroPeriodo); if(pdfDataInicial?.value>pdfDataFinal?.value) pdfDataInicial.focus(); return; }
     if(botao){ botao.textContent="Gerando PDF..."; botao.disabled=true; }
     const {titulo}=intervaloVisualizacao(), url=URL.createObjectURL(criarPDFAgenda(titulo)), link=document.createElement("a");
     const periodo=textoPDF(titulo).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,42);

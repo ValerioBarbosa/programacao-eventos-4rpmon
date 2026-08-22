@@ -30,11 +30,15 @@ test("páginas e service worker usam as mesmas versões",()=>{
   assert.equal(estiloPublico,estiloAdmin);
   assert.match(arquivos["sw.js"],new RegExp(scriptPublico.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")));
   assert.match(arquivos["sw.js"],new RegExp(estiloPublico.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")));
-  assert.match(arquivos["sw.js"],/core\.js\?v=20260816-1/);
+  assert.match(arquivos["sw.js"],/core\.js\?v=20260821-1/);
   assert.match(arquivos["admin.html"],/id="pdfDataInicial"/);
   assert.match(arquivos["admin.html"],/id="pdfDataFinal"/);
   assert.match(arquivos["admin.html"],/<option value="personalizado">Período personalizado<\/option>/);
   assert.match(arquivos["app.js"],/A data inicial não pode ser posterior à data final/);
+  assert.match(arquivos["app.js"],/contarNoIntervalo\(filtradosPorCriterios,hoje,hoje\)/);
+  assert.match(arquivos["app.js"],/modoVisualizacao\.value="mes"/);
+  assert.match(arquivos["app.js"],/tipoEvento"\)\) \$\("tipoEvento"\)\.value="POLOST"/);
+  assert.match(arquivos["app.js"],/grupo=`\$\{data\}\|\$\{obterEsquadrao\(e\)\}`/);
 });
 
 test("JSON de configuração e manifesto são válidos",()=>{
