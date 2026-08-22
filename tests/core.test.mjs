@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
-  chaveMunicipio, contabilizarEfetivo, extrairEfetivoTexto,
+  ajustarDataFinalCalendario, chaveMunicipio, contabilizarEfetivo, extrairEfetivoTexto,
   nomeMunicipio, numeroInteiro, obterEfetivoEstruturado
 } from "../core.js";
 
@@ -33,4 +33,10 @@ test("unifica municípios com sufixo de estado",()=>{
   assert.equal(nomeMunicipio("Porto Alegre/RS"),"Porto Alegre");
   assert.equal(nomeMunicipio("Dois Irmãos - RS"),"Dois Irmãos");
   assert.equal(chaveMunicipio("  São Gabriel / RS "),"sao gabriel");
+});
+
+test("calendário avança para o dia seguinte em eventos noturnos",()=>{
+  assert.equal(ajustarDataFinalCalendario({dataInicio:"2026-09-05",dataFim:"2026-09-05",horaInicio:"20:00",horaFim:"02:00"}),"2026-09-06");
+  assert.equal(ajustarDataFinalCalendario({dataInicio:"2026-09-05",dataFim:"2026-09-05",horaInicio:"18:00",horaFim:"23:00"}),"2026-09-05");
+  assert.equal(ajustarDataFinalCalendario({dataInicio:"2026-09-05",dataFim:"2026-09-06",horaInicio:"20:00",horaFim:"02:00"}),"2026-09-06");
 });

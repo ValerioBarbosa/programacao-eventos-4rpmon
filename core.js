@@ -40,3 +40,16 @@ export function contabilizarEfetivo(lista=[]){
     return totais;
   },{conjuntos:0,mes:0,equinos:0});
 }
+
+export function somarDiasISO(dataISO,dias){
+  const data=new Date(`${dataISO}T12:00:00`);
+  data.setDate(data.getDate()+dias);
+  const ano=data.getFullYear(), mes=String(data.getMonth()+1).padStart(2,"0"), dia=String(data.getDate()).padStart(2,"0");
+  return `${ano}-${mes}-${dia}`;
+}
+
+export function ajustarDataFinalCalendario({dataInicio="",dataFim="",horaInicio="",horaFim=""}={}){
+  const fim=dataFim||dataInicio;
+  if(dataInicio && fim===dataInicio && horaInicio && horaFim && horaFim<=horaInicio) return somarDiasISO(dataInicio,1);
+  return fim;
+}
